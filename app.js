@@ -9,6 +9,7 @@ const zoneLookupResult = document.getElementById("zoneLookupResult");
 const resultsSortSelect = document.getElementById("resultsSort");
 const sliderToggleButton = document.getElementById("sliderToggleButton");
 const sliderPanelContent = document.getElementById("sliderPanelContent");
+const DEFAULT_HOME_RESULTS_LIMIT = 20;
 
 const FILTERS = [
   { key: "category", label: "Category", options: ["Any", "Flower", "Shrub", "Tree", "Groundcover", "Grass", "Vine", "Herb", "Houseplant", "Edible", "Succulent"] },
@@ -1652,22 +1653,13 @@ function renderResults() {
   }
 
   const activeFilters = FILTERS.filter((filter) => state[filter.key] && state[filter.key] !== "Any");
+  const showDefaultResults = activeFilters.length === 0;
 
   syncFilterSelectStates();
   syncPreferenceSliders();
   databaseCount.textContent = `${PLANTS.length} plants in database`;
   if (resultsSortSelect) {
-    resultsSortSelect.disabled = activeFilters.length === 0;
-  }
-
-  if (activeFilters.length === 0) {
-    resultsCount.textContent = "Choose at least 1 filter";
-    resultsList.innerHTML = `
-      <article class="empty-state">
-        Choose one or more Plant Filters to load matches quickly. For the full catalog, use <a href="./master-list.html">Plant Master Database</a> or <a href="./browse.html?view=popular">Top 20 Popular Plants</a>.
-      </article>
-    `;
-    return;
+    resultsSortSelect.disabled = false;
   }
 
   const sortMode = resultsSortSelect?.value || "match";
@@ -1679,10 +1671,15 @@ function renderResults() {
     }))
     .filter((entry) => entry.score > 0)
     .sort((leftEntry, rightEntry) => compareRankedPlants(leftEntry, rightEntry, sortMode));
+  const visibleRanked = showDefaultResults
+    ? getDefaultHomeResults(ranked)
+    : ranked;
 
-  resultsCount.textContent = `${ranked.length} results`;
+  resultsCount.textContent = showDefaultResults
+    ? `Showing first ${visibleRanked.length} of ${ranked.length} plants`
+    : `${ranked.length} results`;
 
-  if (ranked.length === 0) {
+  if (visibleRanked.length === 0) {
     resultsList.innerHTML = `
       <article class="empty-state">
         No plants matched the current criteria. Try loosening one or two filters to see more options.
@@ -1691,8 +1688,16 @@ function renderResults() {
     return;
   }
 
-  const grouped = groupByCategory(ranked);
-  resultsList.innerHTML = Object.entries(grouped)
+  const grouped = groupByCategory(visibleRanked);
+  const defaultResultsNotice = showDefaultResults
+    ? `
+      <article class="empty-state">
+        Showing ${visibleRanked.length} featured plants with images first for faster loading. Add filters to narrow the list, or use <a href="./master-list.html">Plant Master Database</a> for the full catalog.
+      </article>
+    `
+    : "";
+
+  resultsList.innerHTML = defaultResultsNotice + Object.entries(grouped)
     .map(([category, items]) => `
       <section class="section-group">
         <article class="section-heading-card">
@@ -1930,6 +1935,13 @@ function compareRankedPlants(leftEntry, rightEntry, sortMode) {
   }
 
   return leftEntry.plant.commonName.localeCompare(rightEntry.plant.commonName, undefined, { sensitivity: "base" });
+}
+
+function getDefaultHomeResults(ranked) {
+  const featuredEntries = ranked.filter((entry) => hasLikelyRealImage(entry.plant));
+  const fallbackEntries = ranked.filter((entry) => !hasLikelyRealImage(entry.plant));
+
+  return [...featuredEntries, ...fallbackEntries].slice(0, DEFAULT_HOME_RESULTS_LIMIT);
 }
 
 function hasLikelyRealImage(plant) {
