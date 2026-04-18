@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Plant Planner Quick Sliders</title>
+  <link rel="stylesheet" href="./styles.css?v=20260418-35">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero">
+      <div class="hero-utility">
+        <div class="utility-links">
+          <a class="hero-link utility-link secondary-hero-link" href="./index.html">Back to Plant Planner</a>
+          <a class="hero-link utility-link secondary-hero-link" href="./nurseries.html">Local Nurseries</a>
+          <a class="hero-link utility-link secondary-hero-link" href="./instructions.html">How to Use</a>
+        </div>
+      </div>
+      <div class="hero-heading-row">
+        <div class="hero-heading-copy">
+          <p class="eyebrow">Quick Sliders</p>
+          <h1>Adjust sunlight, hardiness, and water in seconds.</h1>
+          <p class="hero-copy">
+            Use the three fast sliders below to set your core preferences, then fine-tune the full filter panel and review ranked plant recommendations.
+          </p>
+        </div>
+        <div class="hero-side-stack">
+          <form class="hero-search hero-search-title" action="./browse.html" method="get" data-browse-search-form="true">
+            <input type="hidden" name="view" value="all">
+            <input class="search-input" type="search" name="q" placeholder="Search plants by name">
+            <button class="secondary-button compact-button search-submit-button" type="submit">Go</button>
+          </form>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <a class="hero-link" href="./browse.html?view=all">Browse All Plants</a>
+        <a class="hero-link" href="./master-list.html">Master List</a>
+        <a class="hero-link" href="./images.html">Image Library</a>
+      </div>
+    </section>
+
+    <section class="slider-panel standalone-panel" aria-labelledby="sliderPanelTitle">
+      <div class="slider-panel-header">
+        <div class="slider-panel-copy">
+          <p class="eyebrow">Quick Sliders</p>
+          <h2 id="sliderPanelTitle">Top 3 Plant Filters</h2>
+          <p class="slider-panel-note">These sliders sync with the matching filters below for sunlight, hardiness, and water.</p>
+        </div>
+        <button id="sliderToggleButton" class="secondary-button compact-button" type="button" aria-expanded="true">Hide Sliders</button>
+      </div>
+      <div id="sliderPanelContent" class="slider-grid">
+        <div class="slider-field">
+          <div class="slider-field-top">
+            <label for="preference-sunlight">Sunlight</label>
+            <span id="sliderValue-sunlight" class="slider-value">Any</span>
+          </div>
+          <input id="preference-sunlight" class="plant-slider" type="range" min="0" max="3" step="1" value="0" data-slider-key="sunlight">
+          <div class="slider-scale">
+            <span class="slider-scale-item">Any</span>
+            <span class="slider-scale-item">
+              <span class="slider-scale-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="presentation">
+                  <path d="M6.1 15.7c.7-2.2 2.7-3.7 5.1-3.7 1.9 0 3.6.8 4.6 2.3.4-.1.9-.2 1.3-.2 2 0 3.7 1.6 3.7 3.7H6.1v-2.1Z" fill="#c8d8e4"></path>
+                  <path d="M4 16.8c0-1.9 1.6-3.5 3.6-3.5.4 0 .8.1 1.2.2 1-1.5 2.8-2.4 4.8-2.4 2.7 0 5 1.8 5.8 4.3H4v1.4Z" fill="#dce7ef"></path>
+                </svg>
+              </span>
+              <span>Shade</span>
+            </span>
+            <span class="slider-scale-item">
+              <span class="slider-scale-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="presentation">
+                  <circle cx="9" cy="9" r="3.6" fill="#f0bf47"></circle>
+                  <g stroke="#f0bf47" stroke-linecap="round" stroke-width="1.7">
+                    <path d="M9 2.3v2.1"></path>
+                    <path d="M9 13.6v2.1"></path>
+                    <path d="M2.3 9h2.1"></path>
+                    <path d="M13.6 9h2.1"></path>
+                    <path d="M4.4 4.4l1.5 1.5"></path>
+                    <path d="M12.1 12.1l1.5 1.5"></path>
+                    <path d="M4.4 13.6l1.5-1.5"></path>
+                    <path d="M12.1 5.9l1.5-1.5"></path>
+                  </g>
+                  <path d="M8.7 13.7c.5-1.9 2.2-3.2 4.3-3.2 2.4 0 4.4 1.9 4.4 4.4H8.7Z" fill="#d8e5ef"></path>
+                  <path d="M6.3 15.2c.6-1.8 2.2-3 4.1-3 1.5 0 2.9.7 3.7 2 .3-.1.7-.1 1-.1 1.8 0 3.2 1.4 3.2 3.2H6.3v-2.1Z" fill="#c8d8e4"></path>
+                </svg>
+              </span>
+              <span>Part Shade</span>
+            </span>
+            <span class="slider-scale-item">
+              <span class="slider-scale-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="presentation">
+                  <circle cx="12" cy="12" r="4.1" fill="#f0bf47"></circle>
+                  <g stroke="#f0bf47" stroke-linecap="round" stroke-width="1.9">
+                    <path d="M12 2.4v2.4"></path>
+                    <path d="M12 19.2v2.4"></path>
+                    <path d="M2.4 12h2.4"></path>
+                    <path d="M19.2 12h2.4"></path>
+                    <path d="M5.2 5.2l1.8 1.8"></path>
+                    <path d="M17 17l1.8 1.8"></path>
+                    <path d="M5.2 18.8 7 17"></path>
+                    <path d="M17 7l1.8-1.8"></path>
+                  </g>
+                </svg>
+              </span>
+              <span>Full Sun</span>
+            </span>
+          </div>
+        </div>
+        <div class="slider-field">
+          <div class="slider-field-top">
+            <label for="preference-hardiness">Hardiness</label>
+            <span id="sliderValue-hardiness" class="slider-value">Any</span>
+          </div>
+          <input id="preference-hardiness" class="plant-slider" type="range" min="0" max="4" step="1" value="0" data-slider-key="hardiness">
+          <div class="slider-scale slider-scale-five">
+            <span>Any</span>
+            <span>3-7</span>
+            <span>5-9</span>
+            <span>7-10</span>
+            <span>8-11</span>
+          </div>
+        </div>
+        <div class="slider-field">
+          <div class="slider-field-top">
+            <label for="preference-water">Water</label>
+            <span id="sliderValue-water" class="slider-value">Any</span>
+          </div>
+          <input id="preference-water" class="plant-slider" type="range" min="0" max="3" step="1" value="0" data-slider-key="water">
+          <div class="slider-scale">
+            <span class="slider-scale-item">Any</span>
+            <span class="slider-scale-item">
+              <span class="slider-scale-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="presentation">
+                  <path d="M12 3.4c2.4 3.1 5.2 6.3 5.2 9.8A5.2 5.2 0 1 1 6.8 13.2c0-3.5 2.8-6.7 5.2-9.8Z" fill="#5ca9df"></path>
+                </svg>
+              </span>
+              <span>Low</span>
+            </span>
+            <span class="slider-scale-item">
+              <span class="slider-scale-icon" aria-hidden="true">
+                <svg viewBox="0 0 32 24" role="presentation">
+                  <path d="M11 3.4c2.2 2.8 4.7 5.8 4.7 9.1A4.7 4.7 0 1 1 6.3 12.5c0-3.3 2.5-6.3 4.7-9.1Z" fill="#5ca9df"></path>
+                  <path d="M22 5.4c1.9 2.4 4 5 4 7.8A4 4 0 1 1 18 13.2c0-2.8 2.1-5.4 4-7.8Z" fill="#5ca9df"></path>
+                </svg>
+              </span>
+              <span>Moderate</span>
+            </span>
+            <span class="slider-scale-item">
+              <span class="slider-scale-icon" aria-hidden="true">
+                <svg viewBox="0 0 40 24" role="presentation">
+                  <path d="M9 3.4c2 2.6 4.2 5.3 4.2 8.3A4.2 4.2 0 1 1 4.8 11.7C4.8 8.7 7 6 9 3.4Z" fill="#5ca9df"></path>
+                  <path d="M20 5c1.8 2.2 3.7 4.6 3.7 7.1A3.7 3.7 0 1 1 16.3 12c0-2.5 2-4.9 3.7-7.1Z" fill="#5ca9df"></path>
+                  <path d="M30.6 3.8c2.1 2.7 4.4 5.5 4.4 8.6a4.4 4.4 0 1 1-8.8 0c0-3.1 2.3-5.9 4.4-8.6Z" fill="#5ca9df"></path>
+                </svg>
+              </span>
+              <span>High</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout-grid">
+      <aside class="filter-panel">
+        <div class="panel-header">
+          <h2>Plant Filters (21)</h2>
+          <button id="resetButton" class="secondary-button" type="button">Reset</button>
+        </div>
+        <section class="zone-helper-card" aria-labelledby="zoneHelperTitle">
+          <div class="zone-helper-copy">
+            <p class="eyebrow">Hardiness Lookup</p>
+            <h3 id="zoneHelperTitle">Find your zone by ZIP or postal code</h3>
+            <p class="zone-helper-text">Enter a U.S. ZIP code or Canadian postal code and the planner will suggest a matching hardiness band.</p>
+          </div>
+          <div class="zone-helper-row">
+            <input id="zipCodeInput" class="zone-input" type="text" placeholder="e.g. 98101 or V6B 1A1" autocomplete="postal-code">
+            <button id="zoneLookupButton" class="secondary-button compact-button" type="button">Lookup</button>
+          </div>
+          <p id="zoneLookupResult" class="zone-result">No ZIP or postal code entered yet.</p>
+        </section>
+        <div class="filter-grid" id="filterGrid"></div>
+      </aside>
+
+      <section class="results-panel">
+        <div class="results-header">
+          <div>
+            <p class="eyebrow">Top Matches</p>
+            <h2 id="resultsTitle">Plant Recommendations</h2>
+          </div>
+          <div class="results-meta">
+            <p id="databaseCount" class="results-count">0 plants in database</p>
+            <p id="resultsCount" class="results-count">0 matches</p>
+            <a class="results-utility-link" href="./images.html">Image Library</a>
+          </div>
+        </div>
+
+        <div class="results-list" id="resultsList"></div>
+      </section>
+    </section>
+  </main>
+
+  <script src="./plant-guides.js?v=20260417-8"></script>
+<script src="./app.js?v=20260418-16"></script>
+</body>
+</html>

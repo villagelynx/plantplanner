@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plant Planner Plant Guide</title>
+  <link rel="stylesheet" href="./styles.css?v=20260418-35">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero">
+      <div class="hero-utility">
+        <div class="utility-links">
+          <a class="hero-link utility-link secondary-hero-link" href="./index.html">Home</a>
+        </div>
+      </div>
+      <p class="eyebrow">Plant Guide</p>
+      <h1 id="plantGuideTitle">Plant Care Guide</h1>
+      <p id="plantGuideLatin" class="hero-copy"></p>
+      <p id="plantGuideSummary" class="hero-copy"></p>
+    </section>
+
+    <section class="results-panel standalone-panel">
+      <div class="guide-overview-grid">
+        <article class="guide-image-card">
+          <img id="plantGuideImage" class="guide-image" alt="">
+        </article>
+        <article class="guide-facts-card">
+          <p class="eyebrow">Quick Facts</p>
+          <h2>At a glance</h2>
+          <div id="plantGuideFacts" class="guide-facts-grid"></div>
+        </article>
+      </div>
+
+      <div id="plantGuideSections" class="results-list"></div>
+    </section>
+  </main>
+
+  <script src="./plant-guides.js?v=20260417-8"></script>
+<script src="./app.js?v=20260418-16"></script>
+  <script src="./plant-guide-page.js?v=20260417-4"></script>
+</body>
+</html>

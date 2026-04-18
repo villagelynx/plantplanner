@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plant Planner Plant Database</title>
+  <link rel="stylesheet" href="./styles.css?v=20260417-33">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero">
+      <div class="hero-utility">
+        <div class="utility-links">
+          <a class="hero-link utility-link secondary-hero-link" href="./index.html">Back to Plant Planner</a>
+        </div>
+      </div>
+      <p class="eyebrow">Plant Database</p>
+      <h1 id="browseTitle">Browse Plant Collections</h1>
+      <p id="browseCopy" class="hero-copy">
+        Use the menu above to open dedicated plant collections for each region or view the full indoor plant collection.
+      </p>
+      <div class="hero-actions">
+        <a class="hero-link" href="./master-list.html">Master List</a>
+        <a class="hero-link" href="./browse.html?view=popular">Top 20 Popular Plants</a>
+        <details class="hero-dropdown">
+          <summary class="hero-link hero-dropdown-button">Plant Collections</summary>
+          <div class="hero-dropdown-panel">
+            <a class="hero-dropdown-link" href="./browse.html?view=food">Food Plants</a>
+            <a class="hero-dropdown-link" href="./browse.html?view=fruit">Fruit Plants</a>
+            <a class="hero-dropdown-link" href="./browse.html?view=tree">Trees</a>
+            <a class="hero-dropdown-link" href="./browse.html?view=privacy">Shrubs &amp; Privacy Plants</a>
+            <a class="hero-dropdown-link" href="./browse.html?view=indoor">Indoor Plants</a>
+          </div>
+        </details>
+        <a class="hero-link" href="./browse.html?view=all">Browse All Plants</a>
+        <form class="hero-search hero-search-inline" action="./browse.html" method="get" data-browse-search-form="true">
+          <input type="hidden" name="view" value="all">
+          <input id="browseSearchInput" class="search-input" type="search" name="q" placeholder="Search plants by name">
+          <button class="secondary-button compact-button search-submit-button" type="submit">Go</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="results-panel standalone-panel">
+      <div class="results-header">
+        <div>
+          <p class="eyebrow">Browse Results</p>
+          <h2 id="browseHeading">Plants</h2>
+        </div>
+        <div class="results-meta">
+          <p id="browseCount" class="results-count">0 plants</p>
+          <p id="browseDatabaseCount" class="results-count">0 plants in database</p>
+        </div>
+      </div>
+
+      <div class="results-list" id="browseResultsList"></div>
+    </section>
+  </main>
+
+  <script src="./plant-guides.js?v=20260417-8"></script>
+<script src="./app.js?v=20260417-12"></script>
+  <script src="./browse.js?v=20260417-4"></script>
+</body>
+</html>

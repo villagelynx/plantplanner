@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Plant Planner</title>
+  <link rel="stylesheet" href="./styles.css?v=20260417-33">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero hero-home">
+      <div class="mobile-hero-toolbar">
+        <div class="mobile-hero-toolbar-row">
+          <div class="mobile-hero-brand-lockup">
+            <div class="mobile-hero-brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 72 72" role="presentation">
+                <defs>
+                  <linearGradient id="mobileLeafBadge" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#4f9a62" />
+                    <stop offset="100%" stop-color="#1f5d38" />
+                  </linearGradient>
+                </defs>
+                <rect x="6" y="6" width="60" height="60" rx="18" fill="url(#mobileLeafBadge)" />
+                <path d="M47 18c-11 1-20 8-24 20-2 6-2 12 0 16 3-2 8-3 14-7 11-6 16-16 10-29Z" fill="#f4f8ef"/>
+                <path d="M27 46c6-7 12-13 22-18" fill="none" stroke="#d7ebd4" stroke-width="3.4" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <p class="mobile-hero-brand">Plant Planner</p>
+          </div>
+          <details class="mobile-hero-menu">
+            <summary class="mobile-hero-menu-button">Menu</summary>
+            <div class="mobile-hero-menu-panel">
+              <a class="mobile-hero-menu-link" href="./index.html">Home</a>
+              <a class="mobile-hero-menu-link" href="./master-list.html">Master List</a>
+              <details class="mobile-hero-submenu">
+                <summary class="mobile-hero-menu-link mobile-hero-submenu-button">Plant Collections</summary>
+                <div class="mobile-hero-submenu-panel">
+                  <a class="mobile-hero-menu-link" href="./browse.html?view=food">Food Plants</a>
+                  <a class="mobile-hero-menu-link" href="./browse.html?view=fruit">Fruit Plants</a>
+                  <a class="mobile-hero-menu-link" href="./browse.html?view=tree">Trees</a>
+                  <a class="mobile-hero-menu-link" href="./browse.html?view=privacy">Shrubs &amp; Privacy Plants</a>
+                  <a class="mobile-hero-menu-link" href="./browse.html?view=indoor">Indoor Plants</a>
+                </div>
+              </details>
+              <a class="mobile-hero-menu-link" href="./instructions.html">How to Use</a>
+            </div>
+          </details>
+        </div>
+      </div>
+      <div class="hero-heading-row">
+        <div class="hero-heading-copy">
+          <div class="brand-lockup">
+            <div class="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 72 72" role="presentation">
+                <defs>
+                  <linearGradient id="leafBadge" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#4f9a62" />
+                    <stop offset="100%" stop-color="#1f5d38" />
+                  </linearGradient>
+                </defs>
+                <rect x="6" y="6" width="60" height="60" rx="18" fill="url(#leafBadge)" />
+                <path d="M47 18c-11 1-20 8-24 20-2 6-2 12 0 16 3-2 8-3 14-7 11-6 16-16 10-29Z" fill="#f4f8ef"/>
+                <path d="M27 46c6-7 12-13 22-18" fill="none" stroke="#d7ebd4" stroke-width="3.4" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <p class="eyebrow">Plant Planner</p>
+          </div>
+          <h1>Find the best plants for your garden or project by selecting up to 21 <span class="hero-highlight">Plant Filters</span> like sunlight, water, etc.</h1>
+          <p class="mobile-hero-intro">Click <span class="hero-highlight">Plant Filters</span> to find your best plant options. Results will appear automatically at the bottom of the search filters.</p>
+          <p class="hero-copy">
+            Choose your garden conditions and goals, then review plant options ranked by fit. Plant Planner helps you compare common name, Latin name, match score, and detailed Plant Guide information covering seeding, maintenance, fall clean-up, winterizing, and the full plant lifecycle in one place.
+          </p>
+          <div class="hero-guide-example">
+            <p class="hero-guide-note">Preview the lifecycle value with a real example guide that walks through planting, care, seasonal clean-up, and winter prep.</p>
+            <a class="guide-button hero-guide-button" href="./plant-guide.html?plant=lavender">See Lavender Plant Guide</a>
+          </div>
+        </div>
+        <div class="hero-side-stack">
+          <section class="zone-helper-card hero-zone-helper" aria-labelledby="zoneHelperTitle">
+            <div class="zone-helper-copy">
+              <p class="eyebrow">Hardiness Lookup</p>
+              <h3 id="zoneHelperTitle">Find your zone by ZIP or postal code</h3>
+              <p class="zone-helper-text">Enter a U.S. ZIP code or Canadian postal code and the planner will suggest a matching hardiness band.</p>
+            </div>
+            <div class="zone-helper-row">
+              <input id="zipCodeInput" class="zone-input" type="text" placeholder="e.g. 98101 or V6B 1A1" autocomplete="postal-code">
+              <button id="zoneLookupButton" class="secondary-button compact-button" type="button">Lookup</button>
+            </div>
+            <p id="zoneLookupResult" class="zone-result">No ZIP or postal code entered yet.</p>
+          </section>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <a class="hero-link" href="./master-list.html">Master List Fast Scan</a>
+        <details class="hero-dropdown">
+          <summary class="hero-link hero-dropdown-button">Plant Collections</summary>
+          <div class="hero-dropdown-panel">
+            <a class="hero-dropdown-link" href="./browse.html?view=food">Food Plants</a>
+            <a class="hero-dropdown-link" href="./browse.html?view=fruit">Fruit Plants</a>
+            <a class="hero-dropdown-link" href="./browse.html?view=tree">Trees</a>
+            <a class="hero-dropdown-link" href="./browse.html?view=privacy">Shrubs &amp; Privacy Plants</a>
+            <a class="hero-dropdown-link" href="./browse.html?view=indoor">Indoor Plants</a>
+          </div>
+        </details>
+        <a class="hero-link" href="./browse.html?view=all">Browse All Plants</a>
+        <a class="hero-link" href="./nurseries.html">Local Nurseries</a>
+        <a class="hero-link" href="./instructions.html">How to Use</a>
+        <form class="hero-search hero-search-inline" action="./browse.html" method="get" data-browse-search-form="true">
+          <input type="hidden" name="view" value="all">
+          <input class="search-input" type="search" name="q" placeholder="Search plants by name">
+          <button class="secondary-button compact-button search-submit-button" type="submit">Go</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="layout-grid">
+      <aside class="filter-panel">
+        <div class="panel-header">
+          <h2>Plant Filters (21)</h2>
+          <button id="resetButton" class="secondary-button" type="button">Reset</button>
+        </div>
+        <div class="filter-grid" id="filterGrid"></div>
+      </aside>
+
+      <section class="results-panel" id="resultsSection">
+        <div class="results-header">
+          <div>
+            <p class="eyebrow">Top Matches</p>
+            <h2 id="resultsTitle">Plant Recommendations</h2>
+          </div>
+          <div class="results-meta">
+            <p id="databaseCount" class="results-count">0 plants in database</p>
+            <p id="resultsCount" class="results-count">0 matches</p>
+            <label class="results-sort">
+              <span class="results-sort-label">Sort</span>
+              <select id="resultsSort" class="results-sort-select">
+                <option value="match">Best Match</option>
+                <option value="images">Images First</option>
+              </select>
+            </label>
+            <a class="results-utility-link" href="./images.html">Image Library</a>
+          </div>
+        </div>
+
+        <div class="results-list" id="resultsList"></div>
+      </section>
+    </section>
+  </main>
+
+  <script src="./plant-guides.js?v=20260417-8"></script>
+<script src="./app.js?v=20260417-12"></script>
+</body>
+</html>

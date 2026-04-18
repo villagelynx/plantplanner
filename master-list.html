@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plant Planner Master List</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero">
+      <div class="hero-utility">
+        <div class="utility-links">
+          <a class="hero-link utility-link secondary-hero-link" href="./index.html">Home</a>
+        </div>
+      </div>
+      <p class="eyebrow">Master List</p>
+      <h1>Plant Master Database</h1>
+      <p class="hero-copy">
+        Scan the full plant database in one sortable list. Click any column heading to reorder the table alphabetically, and open a Plant Guide when a detailed care page is available.
+      </p>
+    </section>
+
+    <section class="results-panel standalone-panel">
+      <div class="results-header">
+        <div>
+          <p class="eyebrow">Database View</p>
+          <h2>All Plants</h2>
+        </div>
+        <div class="results-meta">
+          <p id="masterListCount" class="results-count">0 plants shown</p>
+          <p id="masterDatabaseCount" class="results-count">0 plants in database</p>
+        </div>
+      </div>
+
+      <div class="master-table-shell">
+        <div class="master-table-scroll">
+          <table class="master-table">
+            <thead>
+              <tr>
+                <th>
+                  <button class="master-sort-button" type="button" data-sort-key="commonName">
+                    Plant
+                    <span id="sortIndicator-commonName" class="sort-indicator">A-Z</span>
+                  </button>
+                </th>
+                <th>
+                  <button class="master-sort-button" type="button" data-sort-key="category">
+                    Plant Type
+                    <span id="sortIndicator-category" class="sort-indicator"></span>
+                  </button>
+                </th>
+                <th>
+                  <button class="master-sort-button" type="button" data-sort-key="sunlight">
+                    Sun
+                    <span id="sortIndicator-sunlight" class="sort-indicator"></span>
+                  </button>
+                </th>
+                <th>
+                  <button class="master-sort-button" type="button" data-sort-key="water">
+                    Water
+                    <span id="sortIndicator-water" class="sort-indicator"></span>
+                  </button>
+                </th>
+                <th>
+                  <button class="master-sort-button" type="button" data-sort-key="guideStatus">
+                    Plant Guide
+                    <span id="sortIndicator-guideStatus" class="sort-indicator"></span>
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="masterListBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./plant-guides.js?v=20260417-8"></script>
+<script src="./app.js?v=20260417-12"></script>
+  <script src="./master-list.js"></script>
+</body>
+</html>

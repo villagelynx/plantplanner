@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plant Planner Local Nurseries</title>
+  <link rel="stylesheet" href="./styles.css?v=20260418-35">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero">
+      <div class="hero-utility">
+        <div class="utility-links">
+          <a class="hero-link utility-link secondary-hero-link" href="./index.html">Back to Plant Planner</a>
+          <a class="hero-link utility-link" href="./browse.html?view=all">Browse Plant Database</a>
+        </div>
+      </div>
+      <p class="eyebrow">Local Nurseries</p>
+      <h1>Explore nursery leads by region, city, ZIP code, or postal code.</h1>
+      <p class="hero-copy">
+        This starter nursery guide is a curated browse page for testing layout and workflow. Search by nursery name, city, U.S. ZIP code, Canadian postal code, or region to narrow the list.
+      </p>
+      <div class="hero-actions">
+        <input id="nurserySearchInput" class="search-input library-search-input" type="search" placeholder="Search by nursery name, city, state, ZIP, postal code, or region">
+      </div>
+    </section>
+
+    <section class="results-panel standalone-panel">
+      <div class="results-header">
+        <div>
+          <p class="eyebrow">Nursery Finder</p>
+          <h2>Curated Nursery List</h2>
+        </div>
+        <div class="results-meta">
+          <p id="nurseryCount" class="results-count">0 nurseries</p>
+        </div>
+      </div>
+
+      <div class="filter-grid nursery-filter-grid">
+        <div class="field">
+          <label for="nurseryRegionSelect">Region</label>
+          <select id="nurseryRegionSelect">
+            <option value="All">All Regions</option>
+            <option value="Northwest">Northwest</option>
+            <option value="Southwest">Southwest</option>
+            <option value="Northeast">Northeast</option>
+            <option value="Southeast">Southeast</option>
+            <option value="Midwest">Midwest</option>
+            <option value="Pacific Coast">Pacific Coast</option>
+            <option value="Mountain">Mountain</option>
+            <option value="Canada">Canada</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="nurseryList" class="results-list"></div>
+    </section>
+  </main>
+
+  <script src="./nurseries.js"></script>
+</body>
+</html>

@@ -6,7 +6,6 @@ const resetButton = document.getElementById("resetButton");
 const zipCodeInput = document.getElementById("zipCodeInput");
 const zoneLookupButton = document.getElementById("zoneLookupButton");
 const zoneLookupResult = document.getElementById("zoneLookupResult");
-const resultsSortSelect = document.getElementById("resultsSort");
 const sliderToggleButton = document.getElementById("sliderToggleButton");
 const sliderPanelContent = document.getElementById("sliderPanelContent");
 
@@ -40,10 +39,6 @@ const SLIDER_FILTERS = {
   water: ["Any", "Low", "Moderate", "High"]
 };
 
-function buildWikimediaImageUrl(fileTitle) {
-  return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileTitle)}`;
-}
-
 const POPULAR_PLANT_IMAGE_FILES = {
   "Lavender": "popular/lavender.jpg",
   "Hydrangea": "popular/hydrangea.jpg",
@@ -55,7 +50,7 @@ const POPULAR_PLANT_IMAGE_FILES = {
   "Monstera": "popular/monstera.jpg",
   "Pothos": "popular/pothos.jpg",
   "Peace Lily": "popular/peace-lily.jpg",
-  "Boston Fern": "popular/boston-fern.png",
+  "Boston Fern": "popular/boston-fern.jpg",
   "Petunia": "popular/petunia.jpg",
   "Marigold": "popular/marigold.jpg",
   "Zinnia": "popular/zinnia.jpg",
@@ -67,32 +62,7 @@ const POPULAR_PLANT_IMAGE_FILES = {
   "Aloe Vera": "popular/aloe-vera.jpg"
 };
 
-const POPULAR_PLANT_REMOTE_FILES = {
-  "Lavender": buildWikimediaImageUrl("Natural lavender.jpg"),
-  "Hydrangea": buildWikimediaImageUrl("Hydrangea (49747346081).jpg"),
-  "Rosemary": buildWikimediaImageUrl("Rosemary (390003562).jpg"),
-  "Coneflower": buildWikimediaImageUrl("Pale purple coneflower (54699458585).jpg"),
-  "Hosta": buildWikimediaImageUrl("Hosta.jpg"),
-  "Japanese Maple": buildWikimediaImageUrl("Hever Castle Japanese maple.JPG"),
-  "Snake Plant": buildWikimediaImageUrl("The snake plant.jpg"),
-  "Monstera": buildWikimediaImageUrl("Indoor Monstera deliciosa.jpg"),
-  "Pothos": buildWikimediaImageUrl("Pothos.jpg"),
-  "Peace Lily": buildWikimediaImageUrl("Spathiphyllum (4479608470).jpg"),
-  "Boston Fern": buildWikimediaImageUrl("Boston Fern (2874222232).png"),
-  "Petunia": buildWikimediaImageUrl("Petunia.jpg"),
-  "Marigold": buildWikimediaImageUrl("Marigold flower .jpg"),
-  "Zinnia": buildWikimediaImageUrl("Zinnia.jpg"),
-  "Sunflower": buildWikimediaImageUrl("Single Sunflower.jpg"),
-  "Boxwood": buildWikimediaImageUrl("Box.jpg"),
-  "Dogwood": buildWikimediaImageUrl("Blooming Dogwood.jpg"),
-  "Blueberry": buildWikimediaImageUrl("Blueberries.jpg"),
-  "Tomato": buildWikimediaImageUrl("Tomato plant.jpg"),
-  "Aloe Vera": buildWikimediaImageUrl("Aloe Vera.jpg")
-};
-
 const IMAGE_STORAGE_PREFIX = "gardeningPlannerImage:";
-const AUTO_PLANT_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif"];
-const AUTO_PLANT_IMAGE_FOLDERS = ["plants"];
 const ZIP_ZONE_RULES = [
   { test: (zip) => zip >= 1000 && zip < 6000, zone: "5-9", region: "Northeast" },
   { test: (zip) => zip >= 6000 && zip < 10000, zone: "5-9", region: "Northeast" },
@@ -1489,80 +1459,14 @@ PLANTS.push(...[
   plant("Dahlia", "Dahlia pinnata", { category: "Flower", region: "Pacific Coast", sunlight: "Full Sun", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "Red", climate: "Temperate", hardiness: "7-10", growthHabit: "Upright", seasonality: "Summer", pollinator: "Moderate", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Well-Drained", wind: "Sheltered", container: "Ground", care: "Moderate", lifespan: "Perennial", cost: "Moderate", purpose: "Cut Flower", nurseryCost: "$8-$16" })
 ]);
 
-PLANTS.push(...[
-  plant("White Oak", "Quercus alba", { category: "Tree", region: "Northeast", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Green", climate: "Cool", hardiness: "3-7", growthHabit: "Upright", seasonality: "Fall", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Average", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$68-$128" }),
-  plant("Pin Oak", "Quercus palustris", { category: "Tree", region: "Midwest", sunlight: "Full Sun", soil: "Clay", water: "Moderate", setting: "Outdoor", color: "Red", climate: "Temperate", hardiness: "3-7", growthHabit: "Upright", seasonality: "Fall", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Moist", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$62-$118" }),
-  plant("Bur Oak", "Quercus macrocarpa", { category: "Tree", region: "Midwest", sunlight: "Full Sun", soil: "Loam", water: "Low", setting: "Outdoor", color: "Yellow", climate: "Temperate", hardiness: "3-7", growthHabit: "Upright", seasonality: "Fall", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Average", wind: "Wind Tolerant", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$64-$124" }),
-  plant("Live Oak", "Quercus virginiana", { category: "Tree", region: "Southeast", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Green", climate: "Temperate", hardiness: "7-10", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Average", wind: "Wind Tolerant", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$72-$135" }),
-  plant("Scarlet Oak", "Quercus coccinea", { category: "Tree", region: "Northeast", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Red", climate: "Cool", hardiness: "3-7", growthHabit: "Upright", seasonality: "Fall", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Average", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Container Accent", nurseryCost: "$62-$122" }),
-  plant("Swamp White Oak", "Quercus bicolor", { category: "Tree", region: "Northeast", sunlight: "Full Sun", soil: "Clay", water: "Moderate", setting: "Outdoor", color: "Yellow", climate: "Temperate", hardiness: "3-7", growthHabit: "Upright", seasonality: "Fall", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Moist", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$64-$124" }),
-  plant("Northern Red Oak", "Quercus rubra", { category: "Tree", region: "Midwest", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Red", climate: "Temperate", hardiness: "3-7", growthHabit: "Upright", seasonality: "Fall", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Average", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$64-$126" }),
-  plant("Tulip Tree", "Liriodendron tulipifera", { category: "Tree", region: "Southeast", sunlight: "Full Sun", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "Yellow", climate: "Temperate", hardiness: "5-9", growthHabit: "Upright", seasonality: "Spring", pollinator: "Moderate", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Well-Drained", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Pollinator Garden", nurseryCost: "$68-$128" }),
-  plant("American Sycamore", "Platanus occidentalis", { category: "Tree", region: "Southeast", sunlight: "Full Sun", soil: "Clay", water: "High", setting: "Outdoor", color: "Green", climate: "Temperate", hardiness: "5-9", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Moist", wind: "Wind Tolerant", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$70-$135" }),
-  plant("Honeylocust", "Gleditsia triacanthos", { category: "Tree", region: "Midwest", sunlight: "Full Sun", soil: "Loam", water: "Low", setting: "Outdoor", color: "Green", climate: "Temperate", hardiness: "3-7", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Average", wind: "Wind Tolerant", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$60-$118" }),
-  plant("American Beech", "Fagus grandifolia", { category: "Tree", region: "Northeast", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Yellow", climate: "Cool", hardiness: "3-7", growthHabit: "Upright", seasonality: "Fall", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Average", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$68-$130" }),
-  plant("European Beech", "Fagus sylvatica", { category: "Tree", region: "Northeast", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Green", climate: "Cool", hardiness: "5-9", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Average", wind: "Moderate", container: "Ground", care: "Moderate", lifespan: "Perennial", cost: "Premium", purpose: "Container Accent", nurseryCost: "$72-$138" }),
-  plant("Greenspire Linden", "Tilia cordata Greenspire", { category: "Tree", region: "Midwest", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Yellow", climate: "Temperate", hardiness: "3-7", growthHabit: "Upright", seasonality: "Summer", pollinator: "High", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Average", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Pollinator Garden", nurseryCost: "$62-$118" }),
-  plant("Littleleaf Linden", "Tilia cordata", { category: "Tree", region: "Northeast", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Yellow", climate: "Temperate", hardiness: "3-7", growthHabit: "Upright", seasonality: "Summer", pollinator: "High", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Average", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Pollinator Garden", nurseryCost: "$60-$116" }),
-  plant("American Elm", "Ulmus americana", { category: "Tree", region: "Midwest", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Green", climate: "Temperate", hardiness: "3-7", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Average", wind: "Wind Tolerant", container: "Ground", care: "Moderate", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$62-$120" }),
-  plant("Lacebark Elm", "Ulmus parvifolia", { category: "Tree", region: "Southwest", sunlight: "Full Sun", soil: "Loam", water: "Low", setting: "Outdoor", color: "Green", climate: "Dry", hardiness: "5-9", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Average", wind: "Wind Tolerant", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Moderate", purpose: "Privacy", nurseryCost: "$46-$88" }),
-  plant("Hackberry", "Celtis occidentalis", { category: "Tree", region: "Midwest", sunlight: "Full Sun", soil: "Clay", water: "Low", setting: "Outdoor", color: "Green", climate: "Temperate", hardiness: "3-7", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Average", wind: "Wind Tolerant", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Moderate", purpose: "Privacy", nurseryCost: "$48-$92" }),
-  plant("Kentucky Coffeetree", "Gymnocladus dioicus", { category: "Tree", region: "Midwest", sunlight: "Full Sun", soil: "Loam", water: "Low", setting: "Outdoor", color: "Green", climate: "Temperate", hardiness: "3-7", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Average", wind: "Wind Tolerant", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$64-$124" })
-]);
-
-PLANTS.push(...[
-  plant("London Plane Tree", "Platanus x acerifolia", { category: "Tree", region: "Pacific Coast", sunlight: "Full Sun", soil: "Clay", water: "Moderate", setting: "Outdoor", color: "Green", climate: "Temperate", hardiness: "5-9", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Average", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$66-$128" }),
-  plant("European Hornbeam", "Carpinus betulus", { category: "Tree", region: "Northeast", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Green", climate: "Cool", hardiness: "5-9", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Average", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$58-$108" }),
-  plant("American Hornbeam", "Carpinus caroliniana", { category: "Tree", region: "Northeast", sunlight: "Part Shade", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "Green", climate: "Cool", hardiness: "3-7", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Moist", wind: "Sheltered", container: "Ground", care: "Moderate", lifespan: "Perennial", cost: "Moderate", purpose: "Container Accent", nurseryCost: "$44-$84" }),
-  plant("Allegheny Serviceberry", "Amelanchier laevis", { category: "Tree", region: "Northeast", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "White", climate: "Cool", hardiness: "3-7", growthHabit: "Upright", seasonality: "Spring", pollinator: "High", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Average", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Moderate", purpose: "Pollinator Garden", nurseryCost: "$38-$76" }),
-  plant("Washington Hawthorn", "Crataegus phaenopyrum", { category: "Tree", region: "Midwest", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "White", climate: "Temperate", hardiness: "3-7", growthHabit: "Upright", seasonality: "Spring", pollinator: "High", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Average", wind: "Wind Tolerant", container: "Ground", care: "Moderate", lifespan: "Perennial", cost: "Moderate", purpose: "Pollinator Garden", nurseryCost: "$40-$78" }),
-  plant("Golden Chain Tree", "Laburnum x watereri", { category: "Tree", region: "Pacific Coast", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Yellow", climate: "Cool", hardiness: "5-9", growthHabit: "Upright", seasonality: "Spring", pollinator: "Moderate", toxicity: "Toxic", pestResistance: "Moderate", drainage: "Well-Drained", wind: "Sheltered", container: "Ground", care: "Moderate", lifespan: "Perennial", cost: "Moderate", purpose: "Container Accent", nurseryCost: "$44-$82" }),
-  plant("Goldenraintree", "Koelreuteria paniculata", { category: "Tree", region: "Southwest", sunlight: "Full Sun", soil: "Loam", water: "Low", setting: "Outdoor", color: "Yellow", climate: "Dry", hardiness: "5-9", growthHabit: "Upright", seasonality: "Summer", pollinator: "Moderate", toxicity: "Pet Safe", pestResistance: "High", drainage: "Well-Drained", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Moderate", purpose: "Container Accent", nurseryCost: "$42-$80" }),
-  plant("Fringe Tree", "Chionanthus virginicus", { category: "Tree", region: "Southeast", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "White", climate: "Temperate", hardiness: "5-9", growthHabit: "Upright", seasonality: "Spring", pollinator: "Moderate", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Well-Drained", wind: "Sheltered", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Moderate", purpose: "Container Accent", nurseryCost: "$44-$84" }),
-  plant("Kousa Dogwood", "Cornus kousa", { category: "Tree", region: "Pacific Coast", sunlight: "Part Shade", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "White", climate: "Cool", hardiness: "5-9", growthHabit: "Upright", seasonality: "Spring", pollinator: "High", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Well-Drained", wind: "Sheltered", container: "Ground", care: "Moderate", lifespan: "Perennial", cost: "Premium", purpose: "Container Accent", nurseryCost: "$48-$92" }),
-  plant("Yoshino Cherry", "Prunus x yedoensis", { category: "Tree", region: "Pacific Coast", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Pink", climate: "Temperate", hardiness: "5-9", growthHabit: "Upright", seasonality: "Spring", pollinator: "High", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Well-Drained", wind: "Sheltered", container: "Ground", care: "Moderate", lifespan: "Perennial", cost: "Premium", purpose: "Pollinator Garden", nurseryCost: "$48-$94" }),
-  plant("Flowering Plum", "Prunus cerasifera", { category: "Tree", region: "Pacific Coast", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Pink", climate: "Temperate", hardiness: "5-9", growthHabit: "Upright", seasonality: "Spring", pollinator: "Moderate", toxicity: "Mildly Toxic", pestResistance: "Moderate", drainage: "Well-Drained", wind: "Moderate", container: "Ground", care: "Moderate", lifespan: "Perennial", cost: "Moderate", purpose: "Container Accent", nurseryCost: "$42-$82" }),
-  plant("Jane Magnolia", "Magnolia Jane", { category: "Tree", region: "Northeast", sunlight: "Full Sun", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "Pink", climate: "Cool", hardiness: "5-9", growthHabit: "Upright", seasonality: "Spring", pollinator: "Moderate", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Well-Drained", wind: "Sheltered", container: "Ground", care: "Moderate", lifespan: "Perennial", cost: "Premium", purpose: "Container Accent", nurseryCost: "$46-$88" }),
-  plant("Star Magnolia", "Magnolia stellata", { category: "Tree", region: "Northeast", sunlight: "Full Sun", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "White", climate: "Cool", hardiness: "5-9", growthHabit: "Upright", seasonality: "Spring", pollinator: "Moderate", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Well-Drained", wind: "Sheltered", container: "Ground", care: "Moderate", lifespan: "Perennial", cost: "Premium", purpose: "Container Accent", nurseryCost: "$46-$88" }),
-  plant("Saucer Magnolia", "Magnolia x soulangeana", { category: "Tree", region: "Pacific Coast", sunlight: "Full Sun", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "Pink", climate: "Temperate", hardiness: "5-9", growthHabit: "Upright", seasonality: "Spring", pollinator: "Moderate", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Well-Drained", wind: "Sheltered", container: "Ground", care: "Moderate", lifespan: "Perennial", cost: "Premium", purpose: "Container Accent", nurseryCost: "$48-$92" }),
-  plant("Jacaranda Tree", "Jacaranda mimosifolia", { category: "Tree", region: "Southwest", sunlight: "Full Sun", soil: "Sandy", water: "Low", setting: "Outdoor", color: "Purple", climate: "Dry", hardiness: "7-10", growthHabit: "Upright", seasonality: "Summer", pollinator: "Moderate", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Well-Drained", wind: "Moderate", container: "Ground", care: "Moderate", lifespan: "Perennial", cost: "Premium", purpose: "Container Accent", nurseryCost: "$52-$98" }),
-  plant("Desert Willow", "Chilopsis linearis", { category: "Tree", region: "Southwest", sunlight: "Full Sun", soil: "Sandy", water: "Low", setting: "Outdoor", color: "Pink", climate: "Dry", hardiness: "7-10", growthHabit: "Upright", seasonality: "Summer", pollinator: "High", toxicity: "Pet Safe", pestResistance: "High", drainage: "Well-Drained", wind: "Wind Tolerant", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Moderate", purpose: "Pollinator Garden", nurseryCost: "$38-$74" }),
-  plant("Chaste Tree", "Vitex agnus-castus", { category: "Tree", region: "Southeast", sunlight: "Full Sun", soil: "Loam", water: "Low", setting: "Outdoor", color: "Purple", climate: "Temperate", hardiness: "7-10", growthHabit: "Upright", seasonality: "Summer", pollinator: "High", toxicity: "Pet Safe", pestResistance: "High", drainage: "Well-Drained", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Moderate", purpose: "Pollinator Garden", nurseryCost: "$36-$72" }),
-  plant("Little Gem Magnolia", "Magnolia grandiflora Little Gem", { category: "Tree", region: "Southeast", sunlight: "Full Sun", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "White", climate: "Temperate", hardiness: "7-10", growthHabit: "Upright", seasonality: "Summer", pollinator: "Moderate", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Well-Drained", wind: "Sheltered", container: "Ground", care: "Moderate", lifespan: "Perennial", cost: "Premium", purpose: "Container Accent", nurseryCost: "$52-$96" })
-]);
-
-PLANTS.push(...[
-  plant("Italian Cypress", "Cupressus sempervirens", { category: "Tree", region: "Pacific Coast", sunlight: "Full Sun", soil: "Sandy", water: "Low", setting: "Outdoor", color: "Green", climate: "Mediterranean", hardiness: "7-10", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Well-Drained", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$42-$82" }),
-  plant("Eastern White Pine", "Pinus strobus", { category: "Tree", region: "Northeast", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Green", climate: "Cool", hardiness: "3-7", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "Moderate", drainage: "Average", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$58-$108" }),
-  plant("Austrian Pine", "Pinus nigra", { category: "Tree", region: "Midwest", sunlight: "Full Sun", soil: "Loam", water: "Low", setting: "Outdoor", color: "Green", climate: "Temperate", hardiness: "5-9", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Average", wind: "Wind Tolerant", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$54-$102" }),
-  plant("Ponderosa Pine", "Pinus ponderosa", { category: "Tree", region: "Mountain", sunlight: "Full Sun", soil: "Sandy", water: "Low", setting: "Outdoor", color: "Green", climate: "Dry", hardiness: "3-7", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Well-Drained", wind: "Wind Tolerant", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$60-$112" }),
-  plant("Blue Spruce", "Picea pungens", { category: "Tree", region: "Mountain", sunlight: "Full Sun", soil: "Loam", water: "Low", setting: "Outdoor", color: "Blue", climate: "Cool", hardiness: "3-7", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Well-Drained", wind: "Wind Tolerant", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$62-$116" }),
-  plant("Norway Spruce", "Picea abies", { category: "Tree", region: "Northeast", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Green", climate: "Cool", hardiness: "3-7", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Average", wind: "Wind Tolerant", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$60-$112" }),
-  plant("Serbian Spruce", "Picea omorika", { category: "Tree", region: "Northeast", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Green", climate: "Cool", hardiness: "5-9", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Average", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$58-$108" }),
-  plant("Eastern Red Cedar", "Juniperus virginiana", { category: "Tree", region: "Midwest", sunlight: "Full Sun", soil: "Sandy", water: "Low", setting: "Outdoor", color: "Green", climate: "Temperate", hardiness: "3-7", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Well-Drained", wind: "Wind Tolerant", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Moderate", purpose: "Privacy", nurseryCost: "$42-$82" }),
-  plant("Incense Cedar", "Calocedrus decurrens", { category: "Tree", region: "Pacific Coast", sunlight: "Full Sun", soil: "Loam", water: "Low", setting: "Outdoor", color: "Green", climate: "Mediterranean", hardiness: "5-9", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Well-Drained", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$56-$106" }),
-  plant("Douglas Fir", "Pseudotsuga menziesii", { category: "Tree", region: "Pacific Coast", sunlight: "Full Sun", soil: "Loam", water: "Moderate", setting: "Outdoor", color: "Green", climate: "Cool", hardiness: "5-9", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Average", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$60-$114" }),
-  plant("Deodar Cedar", "Cedrus deodara", { category: "Tree", region: "Pacific Coast", sunlight: "Full Sun", soil: "Loam", water: "Low", setting: "Outdoor", color: "Green", climate: "Mediterranean", hardiness: "5-9", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Well-Drained", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$58-$108" }),
-  plant("Atlas Cedar", "Cedrus atlantica", { category: "Tree", region: "Pacific Coast", sunlight: "Full Sun", soil: "Loam", water: "Low", setting: "Outdoor", color: "Blue", climate: "Mediterranean", hardiness: "5-9", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Well-Drained", wind: "Moderate", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$58-$112" }),
-  plant("Canary Island Pine", "Pinus canariensis", { category: "Tree", region: "Southwest", sunlight: "Full Sun", soil: "Sandy", water: "Low", setting: "Outdoor", color: "Green", climate: "Dry", hardiness: "7-10", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Well-Drained", wind: "Wind Tolerant", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Privacy", nurseryCost: "$54-$102" }),
-  plant("Japanese Black Pine", "Pinus thunbergii", { category: "Tree", region: "Pacific Coast", sunlight: "Full Sun", soil: "Sandy", water: "Low", setting: "Outdoor", color: "Green", climate: "Mediterranean", hardiness: "5-9", growthHabit: "Upright", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe", pestResistance: "High", drainage: "Well-Drained", wind: "Wind Tolerant", container: "Ground", care: "Low", lifespan: "Perennial", cost: "Premium", purpose: "Container Accent", nurseryCost: "$52-$98" })
-]);
-
 dedupePlants();
 normalizePlantCategories();
 
 window.GARDENING_PLANTS = PLANTS;
 window.GARDENING_RENDER_PLANT_CARD = renderPlantCard;
 window.GARDENING_GROUP_BY_CATEGORY = groupByCategory;
-window.GARDENING_HANDLE_PLANT_IMAGE_ERROR = handlePlantImageError;
 
 initializeBrowseSearchForms();
-
-if (resultsSortSelect) {
-  resultsSortSelect.addEventListener("change", () => {
-    renderResults();
-  });
-}
 
 if (filterGrid && resultsList && resultsCount && databaseCount && resetButton) {
   renderFilters();
@@ -1651,26 +1555,9 @@ function renderResults() {
     return;
   }
 
-  const activeFilters = FILTERS.filter((filter) => state[filter.key] && state[filter.key] !== "Any");
-
   syncFilterSelectStates();
   syncPreferenceSliders();
   databaseCount.textContent = `${PLANTS.length} plants in database`;
-  if (resultsSortSelect) {
-    resultsSortSelect.disabled = activeFilters.length === 0;
-  }
-
-  if (activeFilters.length === 0) {
-    resultsCount.textContent = "Choose at least 1 filter";
-    resultsList.innerHTML = `
-      <article class="empty-state">
-        Choose one or more Plant Filters to load matches quickly. For the full catalog, use <a href="./master-list.html">Plant Master Database</a> or <a href="./browse.html?view=popular">Top 20 Popular Plants</a>.
-      </article>
-    `;
-    return;
-  }
-
-  const sortMode = resultsSortSelect?.value || "match";
 
   const ranked = PLANTS
     .map((plant) => ({
@@ -1678,9 +1565,9 @@ function renderResults() {
       ...scorePlant(plant)
     }))
     .filter((entry) => entry.score > 0)
-    .sort((leftEntry, rightEntry) => compareRankedPlants(leftEntry, rightEntry, sortMode));
+    .sort((a, b) => b.score - a.score);
 
-  resultsCount.textContent = `${ranked.length} results`;
+  resultsCount.textContent = `${ranked.length} plants`;
 
   if (ranked.length === 0) {
     resultsList.innerHTML = `
@@ -1916,47 +1803,9 @@ function buildMatchedTags(plant, filters) {
   }));
 }
 
-function compareRankedPlants(leftEntry, rightEntry, sortMode) {
-  if (sortMode === "images") {
-    const leftHasRealImage = Number(hasLikelyRealImage(leftEntry.plant));
-    const rightHasRealImage = Number(hasLikelyRealImage(rightEntry.plant));
-    if (leftHasRealImage !== rightHasRealImage) {
-      return rightHasRealImage - leftHasRealImage;
-    }
-  }
-
-  if (leftEntry.score !== rightEntry.score) {
-    return rightEntry.score - leftEntry.score;
-  }
-
-  return leftEntry.plant.commonName.localeCompare(rightEntry.plant.commonName, undefined, { sensitivity: "base" });
-}
-
-function hasLikelyRealImage(plant) {
-  if (!plant) {
-    return false;
-  }
-
-  if (getStoredPlantImage(plant.commonName)) {
-    return true;
-  }
-
-  if (POPULAR_PLANT_IMAGE_FILES[plant.commonName]) {
-    return true;
-  }
-
-  if (!Array.isArray(plant.imageCandidates) || plant.imageCandidates.length === 0) {
-    return Boolean(plant.image) && !String(plant.image).startsWith("data:image/svg+xml");
-  }
-
-  return false;
-}
-
 function renderPlantCard(plant, score, matchedTags) {
   const plantGuideUrl = buildPlantGuideUrl(plant);
   const fallbackImage = plant.fallbackImage || createPlantImage(plant.commonName, plant.color, plant.setting);
-  const initialImageSource = hasLikelyRealImage(plant) ? plant.image : fallbackImage;
-  const imageCandidates = serializePlantImageCandidates(plant.imageCandidates);
   const colorList = getPlantColorList(plant.color);
   const colorTag = colorList.length > 1
     ? renderResultTag("Flower Colors", colorList.join(", "), true)
@@ -1967,14 +1816,10 @@ function renderPlantCard(plant, score, matchedTags) {
     <article class="result-card">
       <div class="plant-image">
         <img
-          src="${initialImageSource}"
+          src="${plant.image}"
           alt="${plant.commonName}"
-          loading="lazy"
-          decoding="async"
           data-fallback="${fallbackImage}"
-          data-image-candidates="${imageCandidates}"
-          data-image-candidate-index="0"
-          onerror="window.GARDENING_HANDLE_PLANT_IMAGE_ERROR && window.GARDENING_HANDLE_PLANT_IMAGE_ERROR(this)"
+          onerror="this.onerror=null;this.src=this.dataset.fallback;"
         >
       </div>
       <div class="result-content">
@@ -2001,7 +1846,7 @@ function renderPlantCard(plant, score, matchedTags) {
           `).join("")}
         </div>
         <div class="result-link-row">
-          ${plantGuideUrl ? `<a class="guide-button" href="${plantGuideUrl}">Click for Plant Care</a>` : ""}
+          ${plantGuideUrl ? `<a class="guide-button" href="${plantGuideUrl}">Plant Guide</a>` : ""}
         </div>
       </div>
     </article>
@@ -2187,60 +2032,40 @@ function normalizePlantCategories() {
 }
 
 function plant(commonName, latinName, attributes) {
-  const imageLookup = resolvePlantImage(commonName, latinName, attributes);
+  const resolvedImage = resolvePlantImage(commonName, attributes);
   const fallbackImage = createPlantImage(commonName, attributes.color, attributes.setting);
 
   return {
     commonName,
     latinName,
-    image: imageLookup.src || fallbackImage,
-    imageCandidates: imageLookup.candidates || [],
+    image: resolvedImage,
     fallbackImage,
     ...attributes
   };
 }
 
-function resolvePlantImage(name, latinName, attributes) {
+function resolvePlantImage(name, attributes) {
   const explicitImage = attributes.image || attributes.imageUrl || attributes.photo || attributes.photoUrl;
   if (explicitImage) {
-    return {
-      src: explicitImage,
-      candidates: []
-    };
+    return explicitImage;
   }
 
   if (attributes.imagePath || attributes.photoPath || attributes.imageFile || attributes.photoFile) {
     const localSource = attributes.imagePath || attributes.photoPath || attributes.imageFile || attributes.photoFile;
-    return {
-      src: normalizePlantImagePath(localSource),
-      candidates: []
-    };
+    return normalizePlantImagePath(localSource);
   }
 
   const savedImage = getStoredPlantImage(name);
   if (savedImage) {
-    return {
-      src: savedImage,
-      candidates: []
-    };
+    return savedImage;
   }
 
-  const candidates = dedupePlantImageCandidates([
-    ...buildPopularPlantImageCandidates(name),
-    ...buildAutoPlantImageCandidates(name, latinName)
-  ]);
-
-  if (candidates.length > 0) {
-    return {
-      src: candidates[0],
-      candidates
-    };
+  const popularImagePath = POPULAR_PLANT_IMAGE_FILES[name];
+  if (popularImagePath) {
+    return normalizePlantImagePath(popularImagePath);
   }
 
-  return {
-    src: createPlantImage(name, attributes.color, attributes.setting),
-    candidates: []
-  };
+  return createPlantImage(name, attributes.color, attributes.setting);
 }
 
 function normalizePlantImagePath(path) {
@@ -2249,86 +2074,6 @@ function normalizePlantImagePath(path) {
   }
 
   return `./images/${path}`;
-}
-
-function buildPopularPlantImageCandidates(name) {
-  const candidates = [];
-  const localImagePath = POPULAR_PLANT_IMAGE_FILES[name];
-  const remoteImagePath = POPULAR_PLANT_REMOTE_FILES[name];
-
-  if (localImagePath) {
-    candidates.push(normalizePlantImagePath(localImagePath));
-  }
-
-  if (remoteImagePath) {
-    candidates.push(remoteImagePath);
-  }
-
-  return dedupePlantImageCandidates(candidates);
-}
-
-function buildAutoPlantImageCandidates(commonName, latinName) {
-  const slugs = dedupePlantImageCandidates(
-    [commonName, latinName]
-      .filter(Boolean)
-      .map((value) => slugifyPlantName(value))
-      .filter(Boolean)
-  );
-
-  const candidates = [];
-  for (const slug of slugs) {
-    for (const folder of AUTO_PLANT_IMAGE_FOLDERS) {
-      for (const extension of AUTO_PLANT_IMAGE_EXTENSIONS) {
-        const relativePath = folder ? `${folder}/${slug}.${extension}` : `${slug}.${extension}`;
-        candidates.push(normalizePlantImagePath(relativePath));
-      }
-    }
-  }
-
-  return dedupePlantImageCandidates(candidates);
-}
-
-function dedupePlantImageCandidates(values) {
-  return Array.from(new Set((values || []).filter(Boolean)));
-}
-
-function serializePlantImageCandidates(candidates) {
-  try {
-    return encodeURIComponent(JSON.stringify(candidates || []));
-  } catch {
-    return "";
-  }
-}
-
-function parsePlantImageCandidates(value) {
-  if (!value) {
-    return [];
-  }
-
-  try {
-    return JSON.parse(decodeURIComponent(value));
-  } catch {
-    return [];
-  }
-}
-
-function handlePlantImageError(imageElement) {
-  if (!imageElement) {
-    return;
-  }
-
-  const candidates = parsePlantImageCandidates(imageElement.dataset.imageCandidates || "");
-  const currentIndex = Number(imageElement.dataset.imageCandidateIndex || 0);
-  const nextIndex = currentIndex + 1;
-
-  if (nextIndex < candidates.length) {
-    imageElement.dataset.imageCandidateIndex = String(nextIndex);
-    imageElement.src = candidates[nextIndex];
-    return;
-  }
-
-  imageElement.onerror = null;
-  imageElement.src = imageElement.dataset.fallback || "";
 }
 
 function getStoredPlantImage(name) {
