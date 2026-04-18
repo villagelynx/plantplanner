@@ -95,8 +95,11 @@ const VEGETABLE_CATEGORY_KEYWORDS = [
   "turnip"
 ];
 
+const WIKIMEDIA_IMAGE_WIDTH = 1600;
+
 function buildWikimediaImageUrl(fileTitle) {
-  return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileTitle)}`;
+  const normalizedTitle = String(fileTitle).replace(/Ã—/g, String.fromCharCode(0x00D7));
+  return `https://commons.wikimedia.org/w/index.php?title=Special:Redirect/file/${encodeURIComponent(normalizedTitle)}&width=${WIKIMEDIA_IMAGE_WIDTH}`;
 }
 
 const POPULAR_PLANT_IMAGE_FILES = {
@@ -120,6 +123,73 @@ const POPULAR_PLANT_IMAGE_FILES = {
   "Blueberry": "popular/blueberry.jpg",
   "Tomato": "popular/tomato.jpg",
   "Aloe Vera": "popular/aloe-vera.jpg"
+};
+
+const REMOTE_MAPPED_PLANT_IMAGE_FILES = {
+  "White Oak": "plants/white-oak.jpg",
+  "Pin Oak": "plants/pin-oak.jpg",
+  "Live Oak": "plants/live-oak.jpg",
+  "Tulip Tree": "plants/tulip-tree.jpg",
+  "American Sycamore": "plants/american-sycamore.jpg",
+  "American Elm": "plants/american-elm.jpg",
+  "Blue Spruce": "plants/blue-spruce.jpg",
+  "Douglas Fir": "plants/douglas-fir.jpg",
+  "Japanese Black Pine": "plants/japanese-black-pine.jpg",
+  "Strawberry": "plants/strawberry.jpg",
+  "Blackberry": "plants/blackberry.jpg",
+  "Raspberry": "plants/raspberry.jpg",
+  "Fig": "plants/fig.jpg",
+  "Apple Honeycrisp": "plants/apple-tree.jpg",
+  "Apple Fuji": "plants/apple-tree.jpg",
+  "Apple Gala": "plants/apple-tree.jpg",
+  "Apple Granny Smith": "plants/apple-tree.jpg",
+  "Apple McIntosh": "plants/apple-tree.jpg",
+  "Apple Pink Lady": "plants/apple-tree.jpg",
+  "Apple Braeburn": "plants/apple-tree.jpg",
+  "Apple Cortland": "plants/apple-tree.jpg",
+  "Apple Empire": "plants/apple-tree.jpg",
+  "Apple Jonathan": "plants/apple-tree.jpg",
+  "Apple Liberty": "plants/apple-tree.jpg",
+  "Apple Golden Delicious": "plants/apple-tree.jpg",
+  "Apple Winesap": "plants/apple-tree.jpg",
+  "Pear Bartlett": "plants/pear-tree.jpg",
+  "Pear Bosc": "plants/pear-tree.jpg",
+  "Pear Anjou": "plants/pear-tree.jpg",
+  "Pear Seckel": "plants/pear-tree.jpg",
+  "Pear Moonglow": "plants/pear-tree.jpg",
+  "Pear Forelle": "plants/pear-tree.jpg",
+  "Pear Kieffer": "plants/pear-tree.jpg",
+  "Pear Flemish Beauty": "plants/pear-tree.jpg",
+  "Peach": "plants/peach-tree.jpg",
+  "Peach Elberta": "plants/peach-tree.jpg",
+  "Peach Redhaven": "plants/peach-tree.jpg",
+  "Peach Reliance": "plants/peach-tree.jpg",
+  "Peach Saturn": "plants/peach-tree.jpg",
+  "Peach Belle of Georgia": "plants/peach-tree.jpg",
+  "Plum Santa Rosa": "plants/plum-tree.jpg",
+  "Plum Methley": "plants/plum-tree.jpg",
+  "Prune Stanley": "plants/plum-tree.jpg",
+  "Cherry Bing": "plants/cherry-tree.jpg",
+  "Cherry Rainier": "plants/cherry-tree.jpg",
+  "Cherry Montmorency": "plants/cherry-tree.jpg",
+  "Cherry Stella": "plants/cherry-tree.jpg",
+  "Cherry Lapins": "plants/cherry-tree.jpg",
+  "Cherry Black Tartarian": "plants/cherry-tree.jpg",
+  "Pomegranate Wonderful": "plants/pomegranate-tree.jpg",
+  "Kiwiberry Issai": "plants/hardy-kiwi.jpg",
+  "Hardy Kiwi": "plants/hardy-kiwi.jpg",
+  "Orange Valencia": "plants/valencia-orange-tree.jpg",
+  "Orange Cara Cara": "plants/orange-tree.jpg",
+  "Orange Blood": "plants/orange-tree.jpg",
+  "Mandarin Satsuma": "plants/mandarin-orange-tree.jpg",
+  "Tangerine Dancy": "plants/mandarin-orange-tree.jpg",
+  "Meyer Lemon": "plants/lemon-tree.jpg",
+  "Eureka Lemon": "plants/lemon-tree.jpg",
+  "Lemon Variegated Pink": "plants/lemon-tree.jpg",
+  "Bearss Lime": "plants/bearss-lime.jpg",
+  "Key Lime": "plants/key-lime.jpg",
+  "Grapefruit Ruby Red": "plants/grapefruit-ruby-red.jpg",
+  "Cranberry Pilgrim": "plants/cranberry-pilgrim.png"
 };
 
 const POPULAR_PLANT_REMOTE_FILES = {
@@ -151,7 +221,62 @@ const POPULAR_PLANT_REMOTE_FILES = {
   "American Elm": buildWikimediaImageUrl("American elm (25048497086).jpg"),
   "Blue Spruce": buildWikimediaImageUrl("20200602 183335 Blue spruce.jpg"),
   "Douglas Fir": buildWikimediaImageUrl("Douglas fir tree.jpg"),
-  "Japanese Black Pine": buildWikimediaImageUrl("Pinus thunbergii (Japanese Black Pine) (26532118401).jpg")
+  "Japanese Black Pine": buildWikimediaImageUrl("Pinus thunbergii (Japanese Black Pine) (26532118401).jpg"),
+  "Strawberry": buildWikimediaImageUrl("Strawberry Plant.jpg"),
+  "Blackberry": buildWikimediaImageUrl("Blackberry plants.JPG"),
+  "Raspberry": buildWikimediaImageUrl("Raspberry Plant.jpg"),
+  "Fig": buildWikimediaImageUrl("Ficus carica.jpg"),
+  "Apple Honeycrisp": buildWikimediaImageUrl("Apple Tree.jpg"),
+  "Apple Fuji": buildWikimediaImageUrl("Apple Tree.jpg"),
+  "Apple Gala": buildWikimediaImageUrl("Apple Tree.jpg"),
+  "Apple Granny Smith": buildWikimediaImageUrl("Apple Tree.jpg"),
+  "Apple McIntosh": buildWikimediaImageUrl("Apple Tree.jpg"),
+  "Apple Pink Lady": buildWikimediaImageUrl("Apple Tree.jpg"),
+  "Apple Braeburn": buildWikimediaImageUrl("Apple Tree.jpg"),
+  "Apple Cortland": buildWikimediaImageUrl("Apple Tree.jpg"),
+  "Apple Empire": buildWikimediaImageUrl("Apple Tree.jpg"),
+  "Apple Jonathan": buildWikimediaImageUrl("Apple Tree.jpg"),
+  "Apple Liberty": buildWikimediaImageUrl("Apple Tree.jpg"),
+  "Apple Golden Delicious": buildWikimediaImageUrl("Apple Tree.jpg"),
+  "Apple Winesap": buildWikimediaImageUrl("Apple Tree.jpg"),
+  "Pear Bartlett": buildWikimediaImageUrl("A Pear tree.jpg"),
+  "Pear Bosc": buildWikimediaImageUrl("A Pear tree.jpg"),
+  "Pear Anjou": buildWikimediaImageUrl("A Pear tree.jpg"),
+  "Pear Seckel": buildWikimediaImageUrl("A Pear tree.jpg"),
+  "Pear Moonglow": buildWikimediaImageUrl("A Pear tree.jpg"),
+  "Pear Forelle": buildWikimediaImageUrl("A Pear tree.jpg"),
+  "Pear Kieffer": buildWikimediaImageUrl("A Pear tree.jpg"),
+  "Pear Flemish Beauty": buildWikimediaImageUrl("A Pear tree.jpg"),
+  "Peach": buildWikimediaImageUrl("Peach tree.JPG"),
+  "Peach Elberta": buildWikimediaImageUrl("Peach tree.JPG"),
+  "Peach Redhaven": buildWikimediaImageUrl("Peach tree.JPG"),
+  "Peach Reliance": buildWikimediaImageUrl("Peach tree.JPG"),
+  "Peach Saturn": buildWikimediaImageUrl("Peach tree.JPG"),
+  "Peach Belle of Georgia": buildWikimediaImageUrl("Peach tree.JPG"),
+  "Plum Santa Rosa": buildWikimediaImageUrl("Plum tree.jpg"),
+  "Plum Methley": buildWikimediaImageUrl("Plum tree.jpg"),
+  "Prune Stanley": buildWikimediaImageUrl("Plum tree.jpg"),
+  "Cherry Bing": buildWikimediaImageUrl("Cherry trees.jpg"),
+  "Cherry Rainier": buildWikimediaImageUrl("Cherry trees.jpg"),
+  "Cherry Montmorency": buildWikimediaImageUrl("Cherry trees.jpg"),
+  "Cherry Stella": buildWikimediaImageUrl("Cherry trees.jpg"),
+  "Cherry Lapins": buildWikimediaImageUrl("Cherry trees.jpg"),
+  "Cherry Black Tartarian": buildWikimediaImageUrl("Cherry trees.jpg"),
+  "Pomegranate Wonderful": buildWikimediaImageUrl("Pomegranate tree.JPG"),
+  "Kiwiberry Issai": buildWikimediaImageUrl("Kiwifruit on vine.JPG"),
+  "Hardy Kiwi": buildWikimediaImageUrl("Kiwifruit on vine.JPG"),
+  "Orange Valencia": buildWikimediaImageUrl("Valencia orange tree.jpg"),
+  "Orange Cara Cara": buildWikimediaImageUrl("Orange Tree.jpg"),
+  "Orange Blood": buildWikimediaImageUrl("Orange Tree.jpg"),
+  "Mandarin Satsuma": buildWikimediaImageUrl("Mandarin Orange Tree.jpg"),
+  "Tangerine Dancy": buildWikimediaImageUrl("Mandarin Orange Tree.jpg"),
+  "Meyer Lemon": buildWikimediaImageUrl("A lemon tree.jpg"),
+  "Eureka Lemon": buildWikimediaImageUrl("A lemon tree.jpg"),
+  "Lemon Variegated Pink": buildWikimediaImageUrl("A lemon tree.jpg"),
+  "Bearss Lime": buildWikimediaImageUrl("Citrus latifolia.jpg"),
+  "Key Lime": buildWikimediaImageUrl("Citrus × aurantiifolia.jpg"),
+  "Grapefruit Ruby Red": buildWikimediaImageUrl("Three year old Buckeye grapefruit tree.jpg"),
+  "Cranberry Pilgrim": buildWikimediaImageUrl("Cranberry Fruit.png")
 };
 
 const IMAGE_STORAGE_PREFIX = "gardeningPlannerImage:";
@@ -2368,7 +2493,7 @@ function normalizePlantImagePath(path) {
 
 function buildPopularPlantImageCandidates(name) {
   const candidates = [];
-  const localImagePath = POPULAR_PLANT_IMAGE_FILES[name];
+  const localImagePath = POPULAR_PLANT_IMAGE_FILES[name] || REMOTE_MAPPED_PLANT_IMAGE_FILES[name];
   const remoteImagePath = POPULAR_PLANT_REMOTE_FILES[name];
 
   if (localImagePath) {
