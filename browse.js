@@ -251,7 +251,32 @@ const VEGETABLE_KEYWORDS = [
   "turnip",
   "asparagus",
   "artichoke",
-  "rhubarb"
+  "rhubarb",
+  "corn",
+  "potato",
+  "leek",
+  "bok choy",
+  "arugula",
+  "brussels",
+  "sprout",
+  "parsnip",
+  "collard",
+  "mustard",
+  "rutabaga",
+  "horseradish",
+  "shallot",
+  "scallion",
+  "daikon",
+  "endive",
+  "escarole",
+  "celeriac",
+  "jicama",
+  "cassava",
+  "tatsoi",
+  "mizuna",
+  "napa",
+  "watercress",
+  "chayote"
 ];
 
 function isFruitPlant(plant) {

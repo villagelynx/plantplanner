@@ -95,6 +95,12 @@ function renderImageLibrary() {
     attachSlotEvents(slot, index);
   });
 
+  if (filteredPlantSlots.length === 1) {
+    setActivePasteSlot(0);
+  } else if (activePasteSlotIndex >= filteredPlantSlots.length) {
+    activePasteSlotIndex = -1;
+  }
+
   if (imageLibraryCount) {
     imageLibraryCount.textContent = `${filteredPlantSlots.length} plants shown`;
   }
@@ -116,11 +122,12 @@ function renderSlotCard(slot, index) {
           <p class="image-slot-file">${escapeHtml(slot.category)} | suggested file: ${escapeHtml(slot.fileHint)}</p>
         </div>
       </div>
-      <div class="image-dropzone" id="image-dropzone-${index}" tabindex="0" contenteditable="true" spellcheck="false" role="button" aria-label="Photo slot for ${escapeAttribute(slot.name)}">
+      <div class="image-dropzone" id="image-dropzone-${index}" tabindex="0" role="button" aria-label="Photo slot for ${escapeAttribute(slot.name)}">
         ${renderDropzoneContent(slot, index, previewState)}
       </div>
       <input class="image-slot-input" id="image-slot-input-${index}" type="file" accept="image/*">
       <div class="image-slot-actions">
+        <button class="secondary-button compact-button" type="button" data-action="choose" data-index="${index}">Choose File</button>
         <button class="secondary-button compact-button" type="button" data-action="clear" data-index="${index}"${clearDisabled}>${clearLabel}</button>
       </div>
     </article>
@@ -187,6 +194,7 @@ function getPreviewState(slot, storedImage) {
 function attachSlotEvents(slot, index) {
   const input = document.getElementById(`image-slot-input-${index}`);
   const dropzone = document.getElementById(`image-dropzone-${index}`);
+  const chooseButton = document.querySelector(`[data-action="choose"][data-index="${index}"]`);
   const clearButton = document.querySelector(`[data-action="clear"][data-index="${index}"]`);
   const card = document.getElementById(`image-slot-card-${index}`);
 
@@ -225,13 +233,19 @@ function attachSlotEvents(slot, index) {
 
     dropzone.addEventListener("keydown", (event) => {
       const isPasteShortcut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "v";
-      if (!isPasteShortcut) {
-        event.preventDefault();
+      if (isPasteShortcut) {
+        return;
       }
-    });
 
-    dropzone.addEventListener("beforeinput", (event) => {
-      if (event.inputType !== "insertFromPaste") {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        if (input) {
+          input.click();
+        }
+        return;
+      }
+
+      if (event.key.length === 1) {
         event.preventDefault();
       }
     });
@@ -273,6 +287,15 @@ function attachSlotEvents(slot, index) {
     });
   }
 
+  if (chooseButton) {
+    chooseButton.addEventListener("click", () => {
+      setActivePasteSlot(index);
+      if (input) {
+        input.click();
+      }
+    });
+  }
+
   if (clearButton) {
     clearButton.addEventListener("click", () => {
       clearStoredImage(slot.name);
@@ -311,56 +334,48 @@ function updateSourceChip(index, sourceMeta) {
 }
 
 async function handleImagePaste(event) {
-  const target = event.target;
-  const isDropzoneTarget = target instanceof HTMLElement && target.classList.contains("image-dropzone");
-  if (
-    target instanceof HTMLInputElement ||
-    target instanceof HTMLTextAreaElement ||
-    (target instanceof HTMLElement && target.isContentEditable && !isDropzoneTarget)
-  ) {
+  const slotIndex = resolvePasteSlotIndex(event);
+  if (slotIndex < 0) {
     return;
   }
 
-  if (activePasteSlotIndex < 0 || activePasteSlotIndex >= filteredPlantSlots.length) {
-    return;
-  }
-
-  const didSave = await trySavePastedImage(event, activePasteSlotIndex);
+  const didSave = await trySavePastedImage(event, slotIndex);
   if (didSave) {
     event.preventDefault();
   }
 }
 
 async function trySavePastedImage(event, index) {
-  const items = event.clipboardData && event.clipboardData.items;
-  if (!items) {
-    return false;
-  }
-
-  const imageItem = Array.from(items).find((item) => item.type && item.type.startsWith("image/"));
-  if (!imageItem) {
-    return false;
-  }
-
-  const file = imageItem.getAsFile();
-  if (!file) {
-    return false;
-  }
-
   const slot = filteredPlantSlots[index];
   if (!slot) {
     return false;
   }
 
-  await saveImageFromFile(slot.name, file);
-  updateSlotPreview(slot, index);
-  return true;
+  const clipboardImage = extractClipboardImage(event);
+  if (clipboardImage.file) {
+    await saveImageFromFile(slot.name, clipboardImage.file);
+    updateSlotPreview(slot, index);
+    return true;
+  }
+
+  if (clipboardImage.src) {
+    saveImageValue(slot.name, clipboardImage.src);
+    updateSlotPreview(slot, index);
+    return true;
+  }
+
+  setStatus(`Clipboard did not include a usable image for ${slot.name}. Try drag and drop or Choose File.`);
+  return false;
 }
 
 async function saveImageFromFile(plantName, file) {
   const dataUrl = await readFileAsDataUrl(file);
+  saveImageValue(plantName, dataUrl);
+}
+
+function saveImageValue(plantName, value) {
   try {
-    window.localStorage.setItem(getImageKey(plantName), dataUrl);
+    window.localStorage.setItem(getImageKey(plantName), value);
     setStatus(`Saved image for ${plantName}.`);
   } catch {
     setStatus("Image could not be saved. The browser storage limit may have been reached.");
@@ -387,6 +402,80 @@ function getStoredImage(plantName) {
   } catch {
     return "";
   }
+}
+
+function resolvePasteSlotIndex(event) {
+  const target = event.target;
+  const isDropzoneTarget = target instanceof HTMLElement && target.classList.contains("image-dropzone");
+  const isSearchTarget = target === imageLibrarySearch;
+  const clipboardImage = extractClipboardImage(event);
+
+  if (!clipboardImage.file && !clipboardImage.src) {
+    return -1;
+  }
+
+  if (isSearchTarget && filteredPlantSlots.length === 1) {
+    return 0;
+  }
+
+  if (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    (target instanceof HTMLElement && target.isContentEditable && !isDropzoneTarget)
+  ) {
+    return -1;
+  }
+
+  if (activePasteSlotIndex >= 0 && activePasteSlotIndex < filteredPlantSlots.length) {
+    return activePasteSlotIndex;
+  }
+
+  if (filteredPlantSlots.length === 1) {
+    return 0;
+  }
+
+  return -1;
+}
+
+function extractClipboardImage(event) {
+  const clipboardData = event.clipboardData;
+  if (!clipboardData) {
+    return { file: null, src: "" };
+  }
+
+  const files = Array.from(clipboardData.files || []);
+  const imageFile = files.find((file) => file && file.type && file.type.startsWith("image/"));
+  if (imageFile) {
+    return { file: imageFile, src: "" };
+  }
+
+  const items = Array.from(clipboardData.items || []);
+  const imageItem = items.find((item) => item.type && item.type.startsWith("image/"));
+  if (imageItem) {
+    const file = imageItem.getAsFile();
+    if (file) {
+      return { file, src: "" };
+    }
+  }
+
+  const html = clipboardData.getData("text/html") || "";
+  if (html) {
+    try {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const image = doc.querySelector("img[src]");
+      if (image && image.getAttribute("src")) {
+        return { file: null, src: image.getAttribute("src") };
+      }
+    } catch {
+    }
+  }
+
+  const text = clipboardData.getData("text/plain") || "";
+  if (/^(data:image\/|https?:\/\/)/i.test(text.trim())) {
+    return { file: null, src: text.trim() };
+  }
+
+  return { file: null, src: "" };
 }
 
 function clearStoredImage(plantName) {

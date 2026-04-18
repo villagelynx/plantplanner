@@ -1193,7 +1193,8 @@ select {
 
 .image-library-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 260px));
+  justify-content: start;
   gap: 14px;
   margin-top: 16px;
 }
@@ -1328,6 +1329,8 @@ select {
 .image-slot-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .compact-button {
