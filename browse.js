@@ -19,7 +19,12 @@ function filterPlantsForView(plants, view) {
   }
 
   if (view === "food") {
-    return plants.filter((plant) => plant.category === "Edible" || plant.category === "Herb");
+    return plants.filter((plant) =>
+      plant.category === "Herb" ||
+      plant.category === "Edible" ||
+      isFruitPlant(plant) ||
+      isVegetablePlant(plant)
+    );
   }
 
   if (view === "fruit") {
@@ -219,9 +224,97 @@ const FRUIT_KEYWORDS = [
   "surinam cherry"
 ];
 
+const VEGETABLE_KEYWORDS = [
+  "tomato",
+  "pepper",
+  "cucumber",
+  "carrot",
+  "lettuce",
+  "kale",
+  "broccoli",
+  "cabbage",
+  "zucchini",
+  "pumpkin",
+  "squash",
+  "bean",
+  "pea",
+  "onion",
+  "garlic",
+  "beet",
+  "radish",
+  "spinach",
+  "chard",
+  "cauliflower",
+  "celery",
+  "eggplant",
+  "okra",
+  "turnip",
+  "asparagus",
+  "artichoke",
+  "rhubarb"
+];
+
 function isFruitPlant(plant) {
   const name = `${plant.commonName} ${plant.latinName}`.toLowerCase();
-  return plant.category === "Edible" && FRUIT_KEYWORDS.some((keyword) => name.includes(keyword));
+  return ["Edible", "Tree", "Vine", "Shrub"].includes(plant.category) &&
+    FRUIT_KEYWORDS.some((keyword) => name.includes(keyword));
+}
+
+function isVegetablePlant(plant) {
+  if (!plant || plant.category !== "Edible") {
+    return false;
+  }
+
+  if (isFruitPlant(plant)) {
+    return false;
+  }
+
+  const name = `${plant.commonName} ${plant.latinName}`.toLowerCase();
+  return VEGETABLE_KEYWORDS.some((keyword) => name.includes(keyword));
+}
+
+function getBrowseGroupLabel(plant, view) {
+  if (!plant) {
+    return "Other";
+  }
+
+  if (view === "food") {
+    if (plant.category === "Herb") {
+      return "Herbs";
+    }
+
+    if (isFruitPlant(plant)) {
+      return "Fruit";
+    }
+
+    if (isVegetablePlant(plant)) {
+      return "Vegetables";
+    }
+
+    if (plant.category === "Edible") {
+      return "Food Crops";
+    }
+  }
+
+  if (view === "fruit") {
+    if (plant.category === "Tree") {
+      return "Fruit Trees";
+    }
+
+    if (plant.category === "Shrub") {
+      return "Fruit Shrubs";
+    }
+
+    if (plant.category === "Vine") {
+      return "Fruit Vines";
+    }
+
+    if (plant.category === "Edible") {
+      return "Fruit Crops";
+    }
+  }
+
+  return plant.category || "Other";
 }
 
 initializeBrowsePage();
@@ -239,7 +332,7 @@ function initializeBrowsePage() {
   const shouldLimitInitialRender = view === "all" && !query && filteredPlants.length > BROWSE_RENDER_LIMIT;
   const displayPlants = shouldLimitInitialRender ? filteredPlants.slice(0, BROWSE_RENDER_LIMIT) : filteredPlants;
   const grouped = displayPlants.reduce((groups, plant) => {
-    const category = plant.category || "Other";
+    const category = getBrowseGroupLabel(plant, view);
     if (!groups[category]) {
       groups[category] = [];
     }

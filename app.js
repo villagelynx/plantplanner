@@ -1744,6 +1744,12 @@ window.GARDENING_PLANTS = PLANTS;
 window.GARDENING_RENDER_PLANT_CARD = renderPlantCard;
 window.GARDENING_GROUP_BY_CATEGORY = groupByCategory;
 window.GARDENING_HANDLE_PLANT_IMAGE_ERROR = handlePlantImageError;
+window.GARDENING_IMAGE_FILE_MAPS = {
+  popularLocal: POPULAR_PLANT_IMAGE_FILES,
+  mappedLocal: REMOTE_MAPPED_PLANT_IMAGE_FILES,
+  remote: POPULAR_PLANT_REMOTE_FILES
+};
+window.GARDENING_NORMALIZE_PLANT_IMAGE_PATH = normalizePlantImagePath;
 
 initializeBrowseSearchForms();
 
