@@ -1555,13 +1555,9 @@ window.GARDENING_RENDER_PLANT_CARD = renderPlantCard;
 window.GARDENING_GROUP_BY_CATEGORY = groupByCategory;
 window.GARDENING_HANDLE_PLANT_IMAGE_ERROR = handlePlantImageError;
 
-refreshPrimaryStylesheet();
-initializeNavigationLinks();
-initializeMobileHeroMenus();
 initializeBrowseSearchForms();
 
 if (filterGrid && resultsList && resultsCount && databaseCount && resetButton) {
-  ensureResultsSortControl();
   renderFilters();
   initializePreferenceSliders();
   initializeZoneLookup();
@@ -1599,10 +1595,8 @@ function initializeBrowseSearchForms() {
 
       const searchInput = form.querySelector('input[name="q"], input[type="search"]');
       const viewInput = form.querySelector('input[name="view"]');
-      const sortInput = form.querySelector('input[name="sort"]');
       const query = (searchInput?.value || "").trim();
       const view = (viewInput?.value || "all").trim() || "all";
-      const currentSort = (sortInput?.value || new URLSearchParams(window.location.search).get("sort") || "").trim();
       const target = form.getAttribute("action") || "./browse.html";
       const nextUrl = new URL(target, window.location.href);
 
@@ -1611,176 +1605,10 @@ function initializeBrowseSearchForms() {
       if (query) {
         nextUrl.searchParams.set("q", query);
       }
-      if (currentSort) {
-        nextUrl.searchParams.set("sort", currentSort);
-      }
 
       window.location.assign(nextUrl.toString());
     });
   });
-}
-
-function refreshPrimaryStylesheet() {
-  const stylesheet = document.querySelector('link[rel="stylesheet"][href*="styles.css"]');
-  if (!stylesheet) {
-    return;
-  }
-
-  const currentHref = stylesheet.getAttribute("href") || "";
-  const targetHref = "./styles.css?v=20260418-34";
-
-  if (currentHref !== targetHref) {
-    stylesheet.setAttribute("href", targetHref);
-  }
-}
-
-function initializeNavigationLinks() {
-  document.querySelectorAll('a[href$=".html"], a[href*=".html?"]').forEach((link) => {
-    if (link.dataset.navigationReady === "true") {
-      return;
-    }
-
-    link.dataset.navigationReady = "true";
-    link.addEventListener("click", (event) => {
-      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-        return;
-      }
-
-      const href = link.getAttribute("href");
-      if (!href) {
-        return;
-      }
-
-      event.preventDefault();
-      closeMobileHeroMenus();
-      window.location.assign(new URL(href, window.location.href).toString());
-    });
-  });
-}
-
-function initializeMobileHeroMenus() {
-  const menus = Array.from(document.querySelectorAll(".mobile-hero-menu, .mobile-hero-submenu"));
-  if (menus.length === 0) {
-    return;
-  }
-
-  menus.forEach((menu) => {
-    const summary = menu.querySelector("summary");
-    if (!summary || summary.dataset.mobileMenuReady === "true") {
-      return;
-    }
-
-    summary.dataset.mobileMenuReady = "true";
-    summary.setAttribute("role", "button");
-    summary.setAttribute("aria-expanded", menu.hasAttribute("open") ? "true" : "false");
-
-    summary.addEventListener("click", (event) => {
-      event.preventDefault();
-
-      const shouldOpen = !menu.hasAttribute("open");
-      if (menu.classList.contains("mobile-hero-menu")) {
-        closeMobileHeroMenus(menu);
-      } else {
-        closeSiblingMobileSubmenus(menu);
-      }
-
-      toggleMobileHeroMenu(menu, shouldOpen);
-    });
-  });
-
-  document.querySelectorAll(".mobile-hero-menu-panel a, .mobile-hero-submenu-panel a").forEach((link) => {
-    if (link.dataset.mobileMenuLinkReady === "true") {
-      return;
-    }
-
-    link.dataset.mobileMenuLinkReady = "true";
-    link.addEventListener("click", () => {
-      closeMobileHeroMenus();
-    });
-  });
-
-  if (document.body.dataset.mobileMenuOutsideReady === "true") {
-    return;
-  }
-
-  document.body.dataset.mobileMenuOutsideReady = "true";
-  document.addEventListener("click", (event) => {
-    if (event.target.closest(".mobile-hero-menu, .mobile-hero-submenu")) {
-      return;
-    }
-
-    closeMobileHeroMenus();
-  });
-}
-
-function toggleMobileHeroMenu(menu, isOpen) {
-  if (!menu) {
-    return;
-  }
-
-  if (isOpen) {
-    menu.setAttribute("open", "");
-  } else {
-    menu.removeAttribute("open");
-  }
-
-  const summary = menu.querySelector("summary");
-  if (summary) {
-    summary.setAttribute("aria-expanded", isOpen ? "true" : "false");
-  }
-}
-
-function closeSiblingMobileSubmenus(currentMenu) {
-  const parentPanel = currentMenu.closest(".mobile-hero-menu-panel, .mobile-hero-submenu-panel");
-  if (!parentPanel) {
-    return;
-  }
-
-  parentPanel.querySelectorAll(".mobile-hero-submenu").forEach((menu) => {
-    if (menu !== currentMenu) {
-      toggleMobileHeroMenu(menu, false);
-    }
-  });
-}
-
-function closeMobileHeroMenus(exceptMenu = null) {
-  document.querySelectorAll(".mobile-hero-menu, .mobile-hero-submenu").forEach((menu) => {
-    if (menu !== exceptMenu) {
-      toggleMobileHeroMenu(menu, false);
-    }
-  });
-}
-
-function ensureResultsSortControl() {
-  let sortSelect = document.getElementById("resultsSort");
-  const resultsMeta = document.querySelector("#resultsSection .results-meta");
-
-  if (!sortSelect && resultsMeta) {
-    const sortLabel = document.createElement("label");
-    sortLabel.className = "results-sort";
-    sortLabel.innerHTML = `
-      <span class="results-sort-label">Sort</span>
-      <select id="resultsSort" class="results-sort-select">
-        <option value="match">Best Match</option>
-        <option value="images">Images First</option>
-      </select>
-    `;
-    resultsMeta.insertBefore(sortLabel, resultsMeta.querySelector(".results-utility-link"));
-    sortSelect = sortLabel.querySelector("select");
-  }
-
-  if (sortSelect && sortSelect.dataset.sortReady !== "true") {
-    sortSelect.dataset.sortReady = "true";
-    sortSelect.addEventListener("change", () => {
-      renderResults();
-    });
-  }
-
-  return sortSelect;
-}
-
-function getResultsSortMode() {
-  return ensureResultsSortControl()?.value === "images" ? "images" : "match";
 }
 
 function renderFilters() {
