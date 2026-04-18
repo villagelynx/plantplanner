@@ -12,16 +12,16 @@ const sliderPanelContent = document.getElementById("sliderPanelContent");
 const DEFAULT_HOME_RESULTS_LIMIT = 20;
 
 const FILTERS = [
-  { key: "category", label: "Category", options: ["Any", "Flower", "Shrub", "Tree", "Groundcover", "Grass", "Vine", "Herb", "Houseplant", "Edible", "Succulent"] },
-  { key: "region", label: "Location", options: ["Any", "Northwest", "Southwest", "Northeast", "Southeast", "Midwest", "Pacific Coast", "Mountain", "Indoor Anywhere"] },
-  { key: "color", label: "Plant Color", options: ["Any", "White", "Yellow", "Pink", "Purple", "Blue", "Red", "Green"] },
+  { key: "category", label: "Category", options: ["Any", "Edible", "Flower", "Fruit", "Grass", "Groundcover", "Herb", "Houseplant", "Shrub", "Succulent", "Tree", "Vegetable", "Vine"] },
+  { key: "region", label: "Location", options: ["Any", "Indoor Anywhere", "Midwest", "Mountain", "Northeast", "Northwest", "Pacific Coast", "Southeast", "Southwest"] },
+  { key: "color", label: "Plant Color", options: ["Any", "Blue", "Green", "Pink", "Purple", "Red", "White", "Yellow"] },
   { key: "sunlight", label: "Sunlight", options: ["Any", "Full Sun", "Part Shade", "Shade"] },
-  { key: "soil", label: "Soil", options: ["Any", "Loam", "Clay", "Sandy", "Rich Organic"] },
+  { key: "soil", label: "Soil", options: ["Any", "Clay", "Loam", "Rich Organic", "Sandy"] },
   { key: "water", label: "Water", options: ["Any", "Low", "Moderate", "High"] },
   { key: "setting", label: "Indoor / Outdoor", options: ["Any", "Indoor", "Outdoor", "Both"] },
-  { key: "climate", label: "Climate", options: ["Any", "Temperate", "Tropical", "Dry", "Cool", "Mediterranean"] },
+  { key: "climate", label: "Climate", options: ["Any", "Cool", "Dry", "Mediterranean", "Temperate", "Tropical"] },
   { key: "hardiness", label: "Hardiness", options: ["Any", "3-7", "5-9", "7-10", "8-11"] },
-  { key: "growthHabit", label: "Growth Habit", options: ["Any", "Clumping", "Trailing", "Upright", "Shrubby", "Groundcover", "Vining"] },
+  { key: "growthHabit", label: "Growth Habit", options: ["Any", "Clumping", "Groundcover", "Shrubby", "Trailing", "Upright", "Vining"] },
   { key: "seasonality", label: "Blooming / Seasonality", options: ["Any", "Spring", "Summer", "Fall", "Winter", "Year-Round Interest"] },
   { key: "pollinator", label: "Wildlife / Pollinators", options: ["Any", "High", "Moderate", "Low"] },
   { key: "toxicity", label: "Toxicity / Safety", options: ["Any", "Pet Safe", "Mildly Toxic", "Toxic"] },
@@ -30,9 +30,9 @@ const FILTERS = [
   { key: "wind", label: "Wind / Exposure", options: ["Any", "Sheltered", "Moderate", "Wind Tolerant"] },
   { key: "container", label: "Container vs Ground", options: ["Any", "Container", "Ground", "Both"] },
   { key: "care", label: "Pruning / Care", options: ["Any", "Low", "Moderate", "High"] },
-  { key: "lifespan", label: "Lifespan", options: ["Any", "Annual", "Perennial", "Biennial"] },
+  { key: "lifespan", label: "Lifespan", options: ["Any", "Annual", "Biennial", "Perennial"] },
   { key: "cost", label: "Cost / Value", options: ["Any", "Budget", "Moderate", "Premium"] },
-  { key: "purpose", label: "Purpose / Function", options: ["Any", "Privacy", "Pollinator Garden", "Cut Flower", "Edging", "Container Accent", "Houseplant", "Groundcover"] }
+  { key: "purpose", label: "Purpose / Function", options: ["Any", "Container Accent", "Cut Flower", "Edging", "Groundcover", "Houseplant", "Pollinator Garden", "Privacy"] }
 ];
 
 const SLIDER_FILTERS = {
@@ -40,6 +40,60 @@ const SLIDER_FILTERS = {
   hardiness: ["Any", "3-7", "5-9", "7-10", "8-11"],
   water: ["Any", "Low", "Moderate", "High"]
 };
+
+const FRUIT_CATEGORY_KEYWORDS = [
+  "apple",
+  "pear",
+  "peach",
+  "plum",
+  "cherry",
+  "blueberry",
+  "blackberry",
+  "raspberry",
+  "strawberry",
+  "cranberry",
+  "grape",
+  "grapefruit",
+  "fig",
+  "kiwi",
+  "kiwiberry",
+  "pomegranate",
+  "orange",
+  "lemon",
+  "lime",
+  "citrus",
+  "mulberry",
+  "gooseberry",
+  "currant",
+  "huckleberry"
+];
+
+const VEGETABLE_CATEGORY_KEYWORDS = [
+  "tomato",
+  "pepper",
+  "cucumber",
+  "carrot",
+  "lettuce",
+  "kale",
+  "broccoli",
+  "cabbage",
+  "zucchini",
+  "pumpkin",
+  "squash",
+  "bean",
+  "pea",
+  "onion",
+  "garlic",
+  "beet",
+  "radish",
+  "spinach",
+  "chard",
+  "cauliflower",
+  "celery",
+  "eggplant",
+  "okra",
+  "turnip"
+];
 
 function buildWikimediaImageUrl(fileTitle) {
   return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileTitle)}`;
@@ -88,7 +142,16 @@ const POPULAR_PLANT_REMOTE_FILES = {
   "Dogwood": buildWikimediaImageUrl("Blooming Dogwood.jpg"),
   "Blueberry": buildWikimediaImageUrl("Blueberries.jpg"),
   "Tomato": buildWikimediaImageUrl("Tomato plant.jpg"),
-  "Aloe Vera": buildWikimediaImageUrl("Aloe Vera.jpg")
+  "Aloe Vera": buildWikimediaImageUrl("Aloe Vera.jpg"),
+  "White Oak": buildWikimediaImageUrl("White Oak Tree.jpg"),
+  "Pin Oak": buildWikimediaImageUrl("Pin Oak (31290390796).jpg"),
+  "Live Oak": buildWikimediaImageUrl("Fairchild Oak -- Live Oak.jpg"),
+  "Tulip Tree": buildWikimediaImageUrl("Liriodendron tulipifera (2).jpg"),
+  "American Sycamore": buildWikimediaImageUrl("Platanus occidentalis (32318633413).jpg"),
+  "American Elm": buildWikimediaImageUrl("American elm (25048497086).jpg"),
+  "Blue Spruce": buildWikimediaImageUrl("20200602 183335 Blue spruce.jpg"),
+  "Douglas Fir": buildWikimediaImageUrl("Douglas fir tree.jpg"),
+  "Japanese Black Pine": buildWikimediaImageUrl("Pinus thunbergii (Japanese Black Pine) (26532118401).jpg")
 };
 
 const IMAGE_STORAGE_PREFIX = "gardeningPlannerImage:";
@@ -1886,7 +1949,9 @@ function scorePlant(plant) {
   for (const filter of activeFilters) {
     const matchesFilter = filter.key === "color"
       ? plantMatchesColor(plant, state[filter.key])
-      : plant[filter.key] === state[filter.key];
+      : filter.key === "category"
+        ? plantMatchesCategory(plant, state[filter.key])
+        : plant[filter.key] === state[filter.key];
 
     if (!matchesFilter) {
       return {
@@ -1912,6 +1977,44 @@ function scorePlant(plant) {
     score,
     matchedTags: matchedTags.length > 0 ? matchedTags : buildMatchedTags(plant, FILTERS.slice(0, 5))
   };
+}
+
+function plantMatchesCategory(plant, selectedCategory) {
+  if (!selectedCategory || selectedCategory === "Any") {
+    return true;
+  }
+
+  if (selectedCategory === "Fruit") {
+    return isFruitCategoryPlant(plant);
+  }
+
+  if (selectedCategory === "Vegetable") {
+    return isVegetableCategoryPlant(plant);
+  }
+
+  return plant.category === selectedCategory;
+}
+
+function isFruitCategoryPlant(plant) {
+  if (!plant || !["Edible", "Tree", "Vine", "Shrub"].includes(plant.category)) {
+    return false;
+  }
+
+  const searchableName = `${plant.commonName} ${plant.latinName}`.toLowerCase();
+  return FRUIT_CATEGORY_KEYWORDS.some((keyword) => searchableName.includes(keyword));
+}
+
+function isVegetableCategoryPlant(plant) {
+  if (!plant || plant.category !== "Edible") {
+    return false;
+  }
+
+  if (isFruitCategoryPlant(plant)) {
+    return false;
+  }
+
+  const searchableName = `${plant.commonName} ${plant.latinName}`.toLowerCase();
+  return VEGETABLE_CATEGORY_KEYWORDS.some((keyword) => searchableName.includes(keyword));
 }
 
 function buildMatchedTags(plant, filters) {
@@ -1953,7 +2056,7 @@ function hasLikelyRealImage(plant) {
     return true;
   }
 
-  if (POPULAR_PLANT_IMAGE_FILES[plant.commonName]) {
+  if (POPULAR_PLANT_IMAGE_FILES[plant.commonName] || POPULAR_PLANT_REMOTE_FILES[plant.commonName]) {
     return true;
   }
 
