@@ -132,6 +132,7 @@ function renderSlotCard(slot, index) {
       <input class="image-slot-input" id="image-slot-input-${index}" type="file" accept="image/*">
       <div class="image-slot-actions">
         <button class="secondary-button compact-button" type="button" data-action="choose" data-index="${index}">Choose File</button>
+        <button class="secondary-button compact-button ghost-button" type="button" data-action="paste" data-index="${index}">Paste</button>
         ${restoreButton}
         <button class="secondary-button compact-button danger-button" type="button" data-action="delete" data-index="${index}"${deleteDisabled}>${deleteLabel}</button>
       </div>
@@ -217,6 +218,7 @@ function attachSlotEvents(slot, index) {
   const input = document.getElementById(`image-slot-input-${index}`);
   const dropzone = document.getElementById(`image-dropzone-${index}`);
   const chooseButton = document.querySelector(`[data-action="choose"][data-index="${index}"]`);
+  const pasteButton = document.querySelector(`[data-action="paste"][data-index="${index}"]`);
   const deleteButton = document.querySelector(`[data-action="delete"][data-index="${index}"]`);
   const restoreButton = document.querySelector(`[data-action="restore"][data-index="${index}"]`);
   const card = document.getElementById(`image-slot-card-${index}`);
@@ -319,6 +321,16 @@ function attachSlotEvents(slot, index) {
     });
   }
 
+  if (pasteButton) {
+    pasteButton.addEventListener("click", async () => {
+      setActivePasteSlot(index);
+      const didSave = await pasteImageFromClipboard(slot, index);
+      if (!didSave) {
+        focusSlotDropzone(index);
+      }
+    });
+  }
+
   if (restoreButton) {
     restoreButton.addEventListener("click", () => {
       restorePreviewImage(slot.name);
@@ -402,7 +414,7 @@ async function trySavePastedImage(event, index) {
     return false;
   }
 
-  const clipboardImage = extractClipboardImage(event);
+  const clipboardImage = await extractClipboardImage(event);
   if (clipboardImage.file) {
     await saveImageFromFile(slot.name, clipboardImage.file);
     updateSlotPreview(slot, index);
@@ -416,6 +428,24 @@ async function trySavePastedImage(event, index) {
   }
 
   setStatus(`Clipboard did not include a usable image for ${slot.name}. Try drag and drop or Choose File.`);
+  return false;
+}
+
+async function pasteImageFromClipboard(slot, index) {
+  const clipboardImage = await extractClipboardImage();
+  if (clipboardImage.file) {
+    await saveImageFromFile(slot.name, clipboardImage.file);
+    updateSlotPreview(slot, index);
+    return true;
+  }
+
+  if (clipboardImage.src) {
+    saveImageValue(slot.name, clipboardImage.src);
+    updateSlotPreview(slot, index);
+    return true;
+  }
+
+  setStatus(`Clipboard did not expose a usable image for ${slot.name}. Try Ctrl+V after clicking the card, or use Choose File.`);
   return false;
 }
 
@@ -460,11 +490,6 @@ function resolvePasteSlotIndex(event) {
   const target = event.target;
   const isDropzoneTarget = target instanceof HTMLElement && target.classList.contains("image-dropzone");
   const isSearchTarget = target === imageLibrarySearch;
-  const clipboardImage = extractClipboardImage(event);
-
-  if (!clipboardImage.file && !clipboardImage.src) {
-    return -1;
-  }
 
   if (isSearchTarget && filteredPlantSlots.length === 1) {
     return 0;
@@ -489,8 +514,21 @@ function resolvePasteSlotIndex(event) {
   return -1;
 }
 
-function extractClipboardImage(event) {
-  const clipboardData = event.clipboardData;
+async function extractClipboardImage(event) {
+  const eventClipboardImage = extractClipboardImageFromDataTransfer(event?.clipboardData);
+  if (eventClipboardImage.file || eventClipboardImage.src) {
+    return eventClipboardImage;
+  }
+
+  const navigatorClipboardImage = await extractClipboardImageFromNavigator();
+  if (navigatorClipboardImage.file || navigatorClipboardImage.src) {
+    return navigatorClipboardImage;
+  }
+
+  return { file: null, src: "" };
+}
+
+function extractClipboardImageFromDataTransfer(clipboardData) {
   if (!clipboardData) {
     return { file: null, src: "" };
   }
@@ -525,6 +563,46 @@ function extractClipboardImage(event) {
   const text = clipboardData.getData("text/plain") || "";
   if (/^(data:image\/|https?:\/\/)/i.test(text.trim())) {
     return { file: null, src: text.trim() };
+  }
+
+  return { file: null, src: "" };
+}
+
+async function extractClipboardImageFromNavigator() {
+  if (!navigator.clipboard) {
+    return { file: null, src: "" };
+  }
+
+  if (typeof navigator.clipboard.read === "function") {
+    try {
+      const items = await navigator.clipboard.read();
+      for (const item of items) {
+        const imageType = item.types.find((type) => /^image\//i.test(type));
+        if (!imageType) {
+          continue;
+        }
+
+        const blob = await item.getType(imageType);
+        if (!blob) {
+          continue;
+        }
+
+        const extension = imageType.split("/")[1] || "png";
+        const file = new File([blob], `clipboard-image.${extension}`, { type: imageType });
+        return { file, src: "" };
+      }
+    } catch {
+    }
+  }
+
+  if (typeof navigator.clipboard.readText === "function") {
+    try {
+      const text = (await navigator.clipboard.readText()).trim();
+      if (/^(data:image\/|https?:\/\/)/i.test(text)) {
+        return { file: null, src: text };
+      }
+    } catch {
+    }
   }
 
   return { file: null, src: "" };
@@ -680,14 +758,14 @@ function setActivePasteSlot(index) {
   }
 
   if (isPreviewCleared(slot.name)) {
-    setStatus(`Selected ${slot.name}. This slot is cleared and ready for paste or Choose File.`);
+    setStatus(`Selected ${slot.name}. This slot is cleared and ready for paste, the Paste button, or Choose File.`);
     return;
   }
 
   if (getStoredImage(slot.name) || slot.previewCandidates.length > 0) {
-    setStatus(`Selected ${slot.name}. Drop, choose, or paste an image to replace the current preview.`);
+    setStatus(`Selected ${slot.name}. Drop, choose, use Paste, or press Ctrl+V to replace the current preview.`);
     return;
   }
 
-  setStatus(`Selected ${slot.name}. You can drop, choose, or paste an image here.`);
+  setStatus(`Selected ${slot.name}. You can drop, choose, use Paste, or press Ctrl+V here.`);
 }
