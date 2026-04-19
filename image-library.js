@@ -11,9 +11,11 @@ const sharedImageSignInButton = document.getElementById("sharedImageSignIn");
 const sharedImageSignOutButton = document.getElementById("sharedImageSignOut");
 const sharedImageConfigStatus = document.getElementById("sharedImageConfigStatus");
 const sharedImageAuthStatus = document.getElementById("sharedImageAuthStatus");
+const sharedImageConnectionSummary = document.getElementById("sharedImageConnectionSummary");
 const imageSaveModeBrowserButton = document.getElementById("imageSaveModeBrowser");
 const imageSaveModeSharedButton = document.getElementById("imageSaveModeShared");
 const imageSaveModeHint = document.getElementById("imageSaveModeHint");
+const libraryAdminCard = document.querySelector(".library-admin-card");
 const DEFAULT_VISIBLE_SLOTS = 50;
 const PREFERRED_IMAGE_LIBRARY_ORIGIN = "https://plantplanner.ca";
 const SHARED_UPLOAD_MAX_DIMENSION = 1800;
@@ -960,6 +962,10 @@ function syncSharedAdminControls() {
     imageSaveMode = "browser";
   }
 
+  if (libraryAdminCard) {
+    libraryAdminCard.classList.toggle("is-connected", Boolean(signedInEmail));
+  }
+
   if (sharedImageConfigStatus) {
     sharedImageConfigStatus.textContent = isConfigured ? "Supabase ready" : "Supabase not configured";
     sharedImageConfigStatus.className = `image-source-chip ${isConfigured ? "is-project" : "is-empty"}`;
@@ -980,10 +986,27 @@ function syncSharedAdminControls() {
 
   if (sharedImageSignInButton) {
     sharedImageSignInButton.disabled = !isConfigured || Boolean(signedInEmail);
+    sharedImageSignInButton.classList.add("auth-action-button");
+    sharedImageSignInButton.classList.toggle("is-ready", isConfigured && !signedInEmail);
+    sharedImageSignInButton.classList.remove("is-connected");
+    sharedImageSignInButton.textContent = signedInEmail ? "Signed In" : "Sign In";
   }
 
   if (sharedImageSignOutButton) {
     sharedImageSignOutButton.disabled = !signedInEmail;
+    sharedImageSignOutButton.classList.add("auth-action-button");
+    sharedImageSignOutButton.classList.toggle("is-connected", Boolean(signedInEmail));
+    sharedImageSignOutButton.textContent = signedInEmail ? "Sign Out" : "Sign Out";
+  }
+
+  if (sharedImageConnectionSummary) {
+    if (!isConfigured) {
+      sharedImageConnectionSummary.textContent = "Supabase is not configured on this page yet.";
+    } else if (signedInEmail) {
+      sharedImageConnectionSummary.textContent = `Connected to Supabase as ${signedInEmail}. Shared uploads are live.`;
+    } else {
+      sharedImageConnectionSummary.textContent = "Supabase is ready, but you are not signed in yet.";
+    }
   }
 
   syncSaveModeButtons();
