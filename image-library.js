@@ -16,6 +16,8 @@ const imageSaveModeSharedButton = document.getElementById("imageSaveModeShared")
 const imageSaveModeHint = document.getElementById("imageSaveModeHint");
 const DEFAULT_VISIBLE_SLOTS = 50;
 const PREFERRED_IMAGE_LIBRARY_ORIGIN = "https://plantplanner.ca";
+const SHARED_UPLOAD_MAX_DIMENSION = 1800;
+const SHARED_UPLOAD_SOFT_MAX_BYTES = 4.5 * 1024 * 1024;
 const imageFileMaps = window.GARDENING_IMAGE_FILE_MAPS || {
   popularLocal: {},
   mappedLocal: {},
@@ -556,7 +558,9 @@ async function saveSharedImageFromFile(plantName, file) {
   }
 
   try {
-    await sharedImageService.uploadSharedPlantImage(plantName, file);
+    setStatus(`Uploading shared image for ${plantName}...`);
+    const preparedFile = await prepareSharedUploadFile(file, plantName);
+    await sharedImageService.uploadSharedPlantImage(plantName, preparedFile);
     clearStoredImage(plantName, true);
     clearPreviewClearedState(plantName);
     setStatus(`Uploaded shared image for ${plantName}. This photo is now available to everyone.`);
@@ -700,6 +704,10 @@ function extractClipboardImageFromDataTransfer(clipboardData) {
     return { file: null, src: text.trim() };
   }
 
+  if (/^(file:\/\/|[a-zA-Z]:\\)/.test(text.trim())) {
+    return { file: null, src: text.trim() };
+  }
+
   return { file: null, src: "" };
 }
 
@@ -733,7 +741,7 @@ async function extractClipboardImageFromNavigator() {
   if (typeof navigator.clipboard.readText === "function") {
     try {
       const text = (await navigator.clipboard.readText()).trim();
-      if (/^(data:image\/|https?:\/\/)/i.test(text)) {
+      if (/^(data:image\/|https?:\/\/|file:\/\/|[a-zA-Z]:\\)/i.test(text)) {
         return { file: null, src: text };
       }
     } catch {
@@ -1072,6 +1080,10 @@ async function createFileFromImageSource(plantName, value) {
     throw new Error("This pasted image came through as a browser or local-file reference. Use Choose File for shared uploads.");
   }
 
+  if (/^[a-zA-Z]:\\/.test(imageSource)) {
+    throw new Error("This pasted content is only a Windows file path. Web pages cannot read that directly, so use Choose File.");
+  }
+
   const response = await fetch(imageSource);
   if (!response.ok) {
     throw new Error(`The image source returned ${response.status}.`);
@@ -1122,6 +1134,101 @@ function getImageExtension(contentType, imageSource) {
   }
 
   return "jpg";
+}
+
+async function prepareSharedUploadFile(file, plantName) {
+  if (!file || !String(file.type || "").startsWith("image/")) {
+    throw new Error("Choose an image file before uploading.");
+  }
+
+  if (file.size <= SHARED_UPLOAD_SOFT_MAX_BYTES) {
+    return file;
+  }
+
+  const compressedFile = await compressImageFile(file, plantName);
+  if (compressedFile.size <= SHARED_UPLOAD_SOFT_MAX_BYTES) {
+    return compressedFile;
+  }
+
+  throw new Error("That image is still too large after compression. Try a smaller file or crop it before uploading.");
+}
+
+async function compressImageFile(file, plantName) {
+  const imageBitmap = await loadImageBitmap(file);
+  const dimensions = fitWithinBox(imageBitmap.width, imageBitmap.height, SHARED_UPLOAD_MAX_DIMENSION);
+  const canvas = document.createElement("canvas");
+  canvas.width = dimensions.width;
+  canvas.height = dimensions.height;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("The browser could not prepare this image for upload.");
+  }
+
+  context.drawImage(imageBitmap, 0, 0, dimensions.width, dimensions.height);
+  if (typeof imageBitmap.close === "function") {
+    imageBitmap.close();
+  }
+
+  const qualities = [0.92, 0.84, 0.76, 0.68];
+  let bestBlob = null;
+  for (const quality of qualities) {
+    const blob = await canvasToBlob(canvas, "image/webp", quality);
+    if (!blob) {
+      continue;
+    }
+
+    bestBlob = blob;
+    if (blob.size <= SHARED_UPLOAD_SOFT_MAX_BYTES) {
+      break;
+    }
+  }
+
+  if (!bestBlob) {
+    throw new Error("The browser could not compress this image for upload.");
+  }
+
+  return new File([bestBlob], `${slugifyPlantName(plantName)}.webp`, {
+    type: "image/webp"
+  });
+}
+
+function loadImageBitmap(file) {
+  if (typeof createImageBitmap === "function") {
+    return createImageBitmap(file);
+  }
+
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      resolve(image);
+      URL.revokeObjectURL(url);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("The selected image could not be read."));
+    };
+    image.src = url;
+  });
+}
+
+function fitWithinBox(width, height, maxDimension) {
+  if (!width || !height || (width <= maxDimension && height <= maxDimension)) {
+    return { width, height };
+  }
+
+  const scale = Math.min(maxDimension / width, maxDimension / height);
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale))
+  };
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve) => {
+    canvas.toBlob(resolve, type, quality);
+  });
 }
 
 function getErrorMessage(error) {
