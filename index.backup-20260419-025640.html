@@ -8,28 +8,7 @@
   <meta http-equiv="Expires" content="0">
   <title>Plant Planner</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20260418-1">
-  <link rel="stylesheet" href="./styles.css">
-  <script>
-    function showLocalHomeBootMessage(message) {
-      const databaseCount = document.getElementById("databaseCount");
-      const resultsCount = document.getElementById("resultsCount");
-      const resultsList = document.getElementById("resultsList");
-
-      if (databaseCount) {
-        databaseCount.textContent = message;
-      }
-      if (resultsCount) {
-        resultsCount.textContent = "";
-      }
-      if (resultsList) {
-        resultsList.innerHTML = '<article class="empty-state">' + message + '</article>';
-      }
-    }
-
-    window.addEventListener("error", function (event) {
-      showLocalHomeBootMessage("Local script error: " + (event && event.message ? event.message : "Unknown error"));
-    });
-  </script>
+  <link rel="stylesheet" href="./styles.css?v=20260417-33">
 </head>
 <body>
   <main class="page-shell">
@@ -90,10 +69,10 @@
             </div>
             <p class="eyebrow">Plant Planner</p>
           </div>
-          <h1>Find the best plants for your garden or project by selecting up to 21 <span class="hero-highlight">Plant Filters</span> like sunlight, water, and climate.</h1>
+          <h1>Find the best plants for your garden or project by selecting up to 21 <span class="hero-highlight">Plant Filters</span> like sunlight, water, etc.</h1>
           <p class="mobile-hero-intro">Click <span class="hero-highlight">Plant Filters</span> to find your best plant options. Results will appear automatically at the bottom of the search filters.</p>
           <p class="hero-copy">
-            Choose your garden conditions and goals, then review plant options ranked by fit. Plant Planner helps you compare common name, Latin name, match score, and detailed Plant Guide information in one place.
+            Choose your garden conditions and goals, then review plant options ranked by fit. Plant Planner helps you compare common name, Latin name, match score, and detailed Plant Guide information covering seeding, maintenance, fall clean-up, winterizing, and the full plant lifecycle in one place.
           </p>
           <div class="hero-guide-example">
             <p class="hero-guide-note">Preview the lifecycle value with a real example guide that walks through planting, care, seasonal clean-up, and winter prep.</p>
@@ -151,7 +130,7 @@
         <div class="results-header">
           <div>
             <p class="eyebrow">Top Matches</p>
-            <h2 id="resultsTitle">Your Top Plant Matches</h2>
+            <h2 id="resultsTitle">Plant Recommendations</h2>
           </div>
           <div class="results-meta">
             <p id="databaseCount" class="results-count">0 plants in database</p>
@@ -167,29 +146,12 @@
           </div>
         </div>
 
-        <div class="results-list home-results-list" id="resultsList"></div>
+        <div class="results-list" id="resultsList"></div>
       </section>
     </section>
   </main>
 
-  <script src="./plant-guides.js" onerror="showLocalHomeBootMessage('Could not load plant-guides.js')"></script>
-  <script src="./app.js" onerror="showLocalHomeBootMessage('Could not load app.js')"></script>
-  <script>
-    window.setTimeout(function () {
-      const filterGrid = document.getElementById("filterGrid");
-      const initializedFilters = filterGrid ? filterGrid.querySelectorAll("select[data-key]").length : 0;
-      const resultsList = document.getElementById("resultsList");
-      const hasResultsMarkup = resultsList ? resultsList.querySelectorAll(".result-card, .empty-state").length > 0 : false;
-
-      if (initializedFilters === 0) {
-        showLocalHomeBootMessage("Homepage scripts did not initialize on the local file.");
-        return;
-      }
-
-      if (!hasResultsMarkup) {
-        showLocalHomeBootMessage("Homepage loaded, but no result cards were rendered.");
-      }
-    }, 2500);
-  </script>
+  <script src="./plant-guides.js?v=20260417-8"></script>
+<script src="./app.js?v=20260418-21"></script>
 </body>
 </html>

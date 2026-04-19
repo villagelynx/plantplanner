@@ -995,6 +995,14 @@ select {
   align-items: start;
 }
 
+.home-results-list .section-group {
+  display: contents;
+}
+
+.home-results-list .section-heading-card {
+  display: none;
+}
+
 .home-results-list > .empty-state {
   grid-column: 1 / -1;
 }

@@ -13540,3 +13540,7 @@ function getPlantGuideBySlug(slug) {
 window.GARDENING_PLANT_GUIDES = GARDENING_PLANT_GUIDES;
 window.GARDENING_GET_PLANT_GUIDE_BY_NAME = getPlantGuideByName;
 window.GARDENING_GET_PLANT_GUIDE_BY_SLUG = getPlantGuideBySlug;
+
+if (window.__PLANT_PLANNER_BOOT) {
+  window.__PLANT_PLANNER_BOOT.guidesLoaded = true;
+}

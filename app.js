@@ -1862,38 +1862,52 @@ window.GARDENING_IMAGE_FILE_MAPS = {
 };
 window.GARDENING_NORMALIZE_PLANT_IMAGE_PATH = normalizePlantImagePath;
 
-initializeBrowseSearchForms();
+let plantPlannerBootstrapped = false;
 
-if (resultsSortSelect) {
-  resultsSortSelect.addEventListener("change", () => {
+function bootPlantPlanner() {
+  if (plantPlannerBootstrapped) {
+    return;
+  }
+
+  plantPlannerBootstrapped = true;
+  initializeBrowseSearchForms();
+
+  if (resultsSortSelect) {
+    resultsSortSelect.addEventListener("change", () => {
+      renderResults();
+    });
+  }
+
+  if (filterGrid && resultsList && resultsCount && databaseCount && resetButton) {
+    renderFilters();
+    initializePreferenceSliders();
+    initializeZoneLookup();
+    resetButton.addEventListener("click", resetFilters);
     renderResults();
-  });
+  }
+
+  if (window.__PLANT_PLANNER_BOOT) {
+    window.__PLANT_PLANNER_BOOT.appLoaded = true;
+  }
 }
 
-if (filterGrid && resultsList && resultsCount && databaseCount && resetButton) {
-  renderFilters();
-  initializePreferenceSliders();
-  initializeZoneLookup();
-  renderResults();
-
-  resetButton.addEventListener("click", () => {
-    FILTERS.forEach((filter) => {
-      state[filter.key] = "Any";
-      const select = document.getElementById(`filter-${filter.key}`);
-      if (select) {
-        select.value = "Any";
-      }
-    });
-
-    if (zipCodeInput) {
-      zipCodeInput.value = "";
+function resetFilters() {
+  FILTERS.forEach((filter) => {
+    state[filter.key] = "Any";
+    const select = document.getElementById(`filter-${filter.key}`);
+    if (select) {
+      select.value = "Any";
     }
-    if (zoneLookupResult) {
-      zoneLookupResult.textContent = "No ZIP or postal code entered yet.";
-    }
-    syncPreferenceSliders();
-    renderResults();
   });
+
+  if (zipCodeInput) {
+    zipCodeInput.value = "";
+  }
+  if (zoneLookupResult) {
+    zoneLookupResult.textContent = "No ZIP or postal code entered yet.";
+  }
+  syncPreferenceSliders();
+  renderResults();
 }
 
 function initializeBrowseSearchForms() {
@@ -1957,62 +1971,85 @@ function renderResults() {
     return;
   }
 
-  const activeFilters = FILTERS.filter((filter) => state[filter.key] && state[filter.key] !== "Any");
-  const showDefaultResults = activeFilters.length === 0;
+  databaseCount.textContent = `Loading ${PLANTS.length} plants...`;
+  resultsCount.textContent = "Loading matches...";
 
-  syncFilterSelectStates();
-  syncPreferenceSliders();
-  databaseCount.textContent = `${PLANTS.length} plants in database`;
-  if (resultsSortSelect) {
-    resultsSortSelect.disabled = false;
-  }
+  try {
+    const activeFilters = FILTERS.filter((filter) => state[filter.key] && state[filter.key] !== "Any");
+    const showDefaultResults = activeFilters.length === 0;
 
-  const sortMode = resultsSortSelect?.value || "match";
+    syncFilterSelectStates();
+    syncPreferenceSliders();
+    databaseCount.textContent = `${PLANTS.length} plants in database`;
+    if (resultsSortSelect) {
+      resultsSortSelect.disabled = false;
+    }
 
-  const ranked = PLANTS
-    .map((plant) => ({
-      plant,
-      ...scorePlant(plant)
-    }))
-    .filter((entry) => entry.score > 0)
-    .sort((leftEntry, rightEntry) => compareRankedPlants(leftEntry, rightEntry, sortMode));
-  const visibleRanked = showDefaultResults
-    ? getDefaultHomeResults(ranked)
-    : ranked;
+    const sortMode = resultsSortSelect?.value || "match";
 
-  resultsCount.textContent = showDefaultResults
-    ? `Showing first ${visibleRanked.length} of ${ranked.length} plants`
-    : `${ranked.length} results`;
+    const ranked = PLANTS
+      .map((plant) => ({
+        plant,
+        ...scorePlant(plant)
+      }))
+      .filter((entry) => entry.score > 0)
+      .sort((leftEntry, rightEntry) => compareRankedPlants(leftEntry, rightEntry, sortMode));
+    const visibleRanked = showDefaultResults
+      ? getDefaultHomeResults(ranked)
+      : ranked;
 
-  if (visibleRanked.length === 0) {
+    resultsCount.textContent = showDefaultResults
+      ? `Showing first ${visibleRanked.length} of ${ranked.length} plants`
+      : `${ranked.length} results`;
+
+    if (visibleRanked.length === 0) {
+      resultsList.innerHTML = `
+        <article class="empty-state">
+          No plants matched the current criteria. Try loosening one or two filters to see more options.
+        </article>
+      `;
+      return;
+    }
+
+    const grouped = groupByCategory(visibleRanked);
+    const defaultResultsNotice = showDefaultResults
+      ? `
+        <article class="empty-state">
+          Showing ${visibleRanked.length} featured plants with images first for faster loading. Add filters to narrow the list, or use <a href="./master-list.html">Plant Master Database</a> for the full catalog.
+        </article>
+      `
+      : "";
+    const shouldRenderFlatResults = resultsList.classList.contains("home-results-list");
+
+    if (shouldRenderFlatResults) {
+      resultsList.innerHTML = defaultResultsNotice + visibleRanked
+        .map(({ plant, score, matchedTags }) => renderPlantCardSafely(plant, score, matchedTags, !showDefaultResults))
+        .join("");
+      return;
+    }
+
+    resultsList.innerHTML = defaultResultsNotice + Object.entries(grouped)
+      .map(([category, items]) => `
+        <section class="section-group">
+          <article class="section-heading-card">
+            <h3 class="category-title">${category}</h3>
+            <p class="summary-copy">${items.length} matching plants in this category.</p>
+          </article>
+          ${items.map(({ plant, score, matchedTags }) => renderPlantCardSafely(plant, score, matchedTags, !showDefaultResults)).join("")}
+        </section>
+      `)
+      .join("");
+  } catch (error) {
+    console.error("renderResults failed", error);
+    databaseCount.textContent = `${PLANTS.length} plants in database`;
+    resultsCount.textContent = "Results unavailable";
     resultsList.innerHTML = `
       <article class="empty-state">
-        No plants matched the current criteria. Try loosening one or two filters to see more options.
+        The homepage results could not be rendered right now.<br>
+        Error: ${String(error && error.message ? error.message : error)}
       </article>
     `;
-    return;
   }
-
-  const grouped = groupByCategory(visibleRanked);
-  const defaultResultsNotice = showDefaultResults
-    ? `
-      <article class="empty-state">
-        Showing ${visibleRanked.length} featured plants with images first for faster loading. Add filters to narrow the list, or use <a href="./master-list.html">Plant Master Database</a> for the full catalog.
-      </article>
-    `
-    : "";
-
-  resultsList.innerHTML = defaultResultsNotice + Object.entries(grouped)
-    .map(([category, items]) => `
-      <section class="section-group">
-        <article class="section-heading-card">
-          <h3 class="category-title">${category}</h3>
-          <p class="summary-copy">${items.length} matching plants in this category.</p>
-        </article>
-        ${items.map(({ plant, score, matchedTags }) => renderPlantCard(plant, score, matchedTags, !showDefaultResults)).join("")}
-      </section>
-    `)
-    .join("");
 }
 
 function initializeZoneLookup() {
@@ -2646,6 +2683,53 @@ function getScorePresentation(plant, score, matchedTags, hasActiveFilters) {
   };
 }
 
+function getLowercasePlantText(value, fallback) {
+  const normalizedValue = String(value || fallback || "").trim();
+  return normalizedValue ? normalizedValue.toLowerCase() : "";
+}
+
+function renderPlantCardSafely(plant, score, matchedTags, hasActiveFilters) {
+  try {
+    return renderPlantCard(plant, score, matchedTags, hasActiveFilters);
+  } catch (error) {
+    console.error("Plant card render failed", plant?.commonName || "Unknown plant", error);
+
+    const scorePresentation = getScorePresentation(plant || {}, Number(score) || 0, matchedTags || [], hasActiveFilters);
+    const plantName = plant?.commonName || "Plant";
+    const latinName = plant?.latinName || "Plant details unavailable";
+    const fallbackImage = plant?.fallbackImage || createPlantImage(plantName, plant?.color, plant?.setting);
+    const guideUrl = plant ? buildPlantGuideUrl(plant) : "";
+    const fallbackSummary = plant?.summary || "Plant details are still loading for this card.";
+
+    return `
+      <article class="result-card">
+        <div class="plant-image">
+          <img src="${fallbackImage}" alt="${plantName}" loading="lazy" decoding="async">
+        </div>
+        <div class="result-content">
+          <div class="result-top">
+            <div class="result-title">
+              <h3>${plantName}</h3>
+              <p class="latin-name">${latinName}</p>
+            </div>
+            <div class="result-score-stack">
+              <div class="score-pill ${scorePresentation.className}">
+                <small>${scorePresentation.eyebrow}</small>
+                <span>${scorePresentation.headline}</span>
+              </div>
+              <p class="score-context">${scorePresentation.context}</p>
+            </div>
+          </div>
+          <p class="summary-copy">${fallbackSummary}</p>
+          <div class="result-link-row">
+            ${guideUrl ? `<a class="guide-button" href="${guideUrl}">Click for Plant Care</a>` : ""}
+          </div>
+        </div>
+      </article>
+    `;
+  }
+}
+
 function renderPlantCard(plant, score, matchedTags, hasActiveFilters) {
   const plantGuideUrl = buildPlantGuideUrl(plant);
   const fallbackImage = plant.fallbackImage || createPlantImage(plant.commonName, plant.color, plant.setting);
@@ -2699,7 +2783,7 @@ function renderPlantCard(plant, score, matchedTags, hasActiveFilters) {
           </div>
         </div>
         <p class="summary-copy">
-          ${plant.category} option best for ${plant.purpose.toLowerCase()} projects with ${plant.sunlight.toLowerCase()}, ${plant.water.toLowerCase()} water needs, and ${plant.care.toLowerCase()} maintenance.
+          ${plant.category} option best for ${getLowercasePlantText(plant.purpose, "garden")} projects with ${getLowercasePlantText(plant.sunlight, "balanced")} light, ${getLowercasePlantText(plant.water, "moderate")} water needs, and ${getLowercasePlantText(plant.care, "moderate")} maintenance.
         </p>
         ${matchReasonMarkup}
         <div class="tag-grid">
@@ -3099,3 +3183,5 @@ function createPlantImage(name, color, setting) {
 
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
+
+bootPlantPlanner();
