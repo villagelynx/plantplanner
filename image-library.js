@@ -1,4 +1,5 @@
 const IMAGE_LIBRARY_STORAGE_PREFIX = "gardeningPlannerImage:";
+const IMAGE_LIBRARY_PREVIEW_CLEAR_PREFIX = "gardeningPlannerImagePreviewClear:";
 const imageLibraryGrid = document.getElementById("imageLibraryGrid");
 const imageLibraryStatus = document.getElementById("imageLibraryStatus");
 const imageLibraryCount = document.getElementById("imageLibraryCount");
@@ -108,10 +109,13 @@ function renderImageLibrary() {
 
 function renderSlotCard(slot, index) {
   const storedImage = getStoredImage(slot.name);
-  const previewState = getPreviewState(slot, storedImage);
+  const previewState = getPreviewState(slot, storedImage, isPreviewCleared(slot.name));
   const selectedClass = activePasteSlotIndex === index ? " is-selected" : "";
-  const clearLabel = storedImage ? "Clear Saved Override" : "No Saved Override";
-  const clearDisabled = storedImage ? "" : " disabled";
+  const deleteLabel = previewState.src ? "Delete Current Image" : "No Image to Delete";
+  const deleteDisabled = previewState.src ? "" : " disabled";
+  const restoreButton = previewState.isCleared && slot.previewCandidates.length > 0
+    ? `<button class="secondary-button compact-button ghost-button" type="button" data-action="restore" data-index="${index}">Restore Wired Image</button>`
+    : "";
 
   return `
     <article class="image-slot-card${selectedClass}" id="image-slot-card-${index}" data-index="${index}" tabindex="0">
@@ -128,7 +132,8 @@ function renderSlotCard(slot, index) {
       <input class="image-slot-input" id="image-slot-input-${index}" type="file" accept="image/*">
       <div class="image-slot-actions">
         <button class="secondary-button compact-button" type="button" data-action="choose" data-index="${index}">Choose File</button>
-        <button class="secondary-button compact-button" type="button" data-action="clear" data-index="${index}"${clearDisabled}>${clearLabel}</button>
+        ${restoreButton}
+        <button class="secondary-button compact-button danger-button" type="button" data-action="delete" data-index="${index}"${deleteDisabled}>${deleteLabel}</button>
       </div>
     </article>
   `;
@@ -144,7 +149,7 @@ function renderDropzoneContent(slot, index, previewState) {
         decoding="async"
         ${previewState.candidates.length > 0 ? `data-image-candidates="${escapeAttribute(serializeImageCandidates(previewState.candidates))}" data-image-candidate-index="0" data-fallback="${escapeAttribute(previewState.fallback)}" onerror="window.GARDENING_HANDLE_PLANT_IMAGE_ERROR && window.GARDENING_HANDLE_PLANT_IMAGE_ERROR(this)"` : ""}
       >`
-    : `<div class="image-slot-placeholder">No wired image yet</div>`;
+    : `<div class="image-slot-placeholder">${previewState.isCleared ? "Preview cleared. Paste or choose a replacement." : "No wired image yet"}</div>`;
 
   return `
     ${previewMarkup}
@@ -155,7 +160,7 @@ function renderDropzoneContent(slot, index, previewState) {
   `;
 }
 
-function getPreviewState(slot, storedImage) {
+function getPreviewState(slot, storedImage, isCleared) {
   if (storedImage) {
     return {
       src: storedImage,
@@ -163,7 +168,22 @@ function getPreviewState(slot, storedImage) {
       fallback: "",
       label: "Browser override",
       badgeClass: "is-saved",
-      hint: "Drop image to replace"
+      hint: "Drop, paste, or choose a replacement",
+      isCleared: false
+    };
+  }
+
+  if (isCleared) {
+    return {
+      src: "",
+      candidates: [],
+      fallback: "",
+      label: "Paste-ready slot",
+      badgeClass: "is-empty",
+      hint: slot.previewCandidates.length > 0
+        ? "Paste or choose a replacement"
+        : "Drop, paste, or choose a new image",
+      isCleared: true
     };
   }
 
@@ -177,7 +197,8 @@ function getPreviewState(slot, storedImage) {
       fallback: slot.fallbackImage || "",
       label: sourceMeta.label,
       badgeClass: sourceMeta.badgeClass,
-      hint: "Drop image to replace"
+      hint: "Drop, paste, or choose a replacement",
+      isCleared: false
     };
   }
 
@@ -187,7 +208,8 @@ function getPreviewState(slot, storedImage) {
     fallback: "",
     label: "Drop-in ready",
     badgeClass: "is-empty",
-    hint: "Drop, paste, or double-click"
+    hint: "Drop, paste, or double-click",
+    isCleared: false
   };
 }
 
@@ -195,7 +217,8 @@ function attachSlotEvents(slot, index) {
   const input = document.getElementById(`image-slot-input-${index}`);
   const dropzone = document.getElementById(`image-dropzone-${index}`);
   const chooseButton = document.querySelector(`[data-action="choose"][data-index="${index}"]`);
-  const clearButton = document.querySelector(`[data-action="clear"][data-index="${index}"]`);
+  const deleteButton = document.querySelector(`[data-action="delete"][data-index="${index}"]`);
+  const restoreButton = document.querySelector(`[data-action="restore"][data-index="${index}"]`);
   const card = document.getElementById(`image-slot-card-${index}`);
 
   if (card) {
@@ -296,12 +319,40 @@ function attachSlotEvents(slot, index) {
     });
   }
 
-  if (clearButton) {
-    clearButton.addEventListener("click", () => {
-      clearStoredImage(slot.name);
+  if (restoreButton) {
+    restoreButton.addEventListener("click", () => {
+      restorePreviewImage(slot.name);
       updateSlotPreview(slot, index);
+      focusSlotDropzone(index);
     });
   }
+
+  if (deleteButton) {
+    deleteButton.addEventListener("click", () => {
+      deletePreviewImage(slot);
+      updateSlotPreview(slot, index);
+      setActivePasteSlot(index);
+      focusSlotDropzone(index);
+      setStatus(`Cleared the current preview for ${slot.name}. Paste or choose a replacement image now.`);
+    });
+  }
+}
+
+function focusSlotDropzone(index) {
+  const dropzone = document.getElementById(`image-dropzone-${index}`);
+  if (dropzone) {
+    dropzone.focus();
+  }
+}
+
+function deletePreviewImage(slot) {
+  clearStoredImage(slot.name, true);
+  setPreviewCleared(slot.name, true);
+}
+
+function restorePreviewImage(plantName) {
+  setPreviewCleared(plantName, false);
+  setStatus(`Restored the wired preview for ${plantName}.`);
 }
 
 function bindPreviewSourceStatus(slot, index, dropzone) {
@@ -375,6 +426,7 @@ async function saveImageFromFile(plantName, file) {
 
 function saveImageValue(plantName, value) {
   try {
+    clearPreviewClearedState(plantName);
     window.localStorage.setItem(getImageKey(plantName), value);
     setStatus(`Saved image for ${plantName}.`);
   } catch {
@@ -478,13 +530,44 @@ function extractClipboardImage(event) {
   return { file: null, src: "" };
 }
 
-function clearStoredImage(plantName) {
+function clearStoredImage(plantName, quiet = false) {
   try {
     window.localStorage.removeItem(getImageKey(plantName));
-    setStatus(`Cleared saved override for ${plantName}.`);
+    if (!quiet) {
+      setStatus(`Cleared saved override for ${plantName}.`);
+    }
   } catch {
-    setStatus("Could not clear that image.");
+    if (!quiet) {
+      setStatus("Could not clear that image.");
+    }
   }
+}
+
+function isPreviewCleared(plantName) {
+  try {
+    return window.sessionStorage.getItem(getPreviewClearKey(plantName)) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function setPreviewCleared(plantName, value) {
+  try {
+    if (value) {
+      window.sessionStorage.setItem(getPreviewClearKey(plantName), "1");
+    } else {
+      window.sessionStorage.removeItem(getPreviewClearKey(plantName));
+    }
+  } catch {
+  }
+}
+
+function clearPreviewClearedState(plantName) {
+  setPreviewCleared(plantName, false);
+}
+
+function getPreviewClearKey(plantName) {
+  return `${IMAGE_LIBRARY_PREVIEW_CLEAR_PREFIX}${slugifyPlantName(plantName)}`;
 }
 
 function getImageKey(plantName) {
@@ -593,6 +676,11 @@ function setActivePasteSlot(index) {
 
   const slot = filteredPlantSlots[index];
   if (!slot) {
+    return;
+  }
+
+  if (isPreviewCleared(slot.name)) {
+    setStatus(`Selected ${slot.name}. This slot is cleared and ready for paste or Choose File.`);
     return;
   }
 

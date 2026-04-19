@@ -2009,7 +2009,7 @@ function renderResults() {
           <h3 class="category-title">${category}</h3>
           <p class="summary-copy">${items.length} matching plants in this category.</p>
         </article>
-        ${items.map(({ plant, score, matchedTags }) => renderPlantCard(plant, score, matchedTags)).join("")}
+        ${items.map(({ plant, score, matchedTags }) => renderPlantCard(plant, score, matchedTags, !showDefaultResults)).join("")}
       </section>
     `)
     .join("");
@@ -2151,31 +2151,178 @@ function lookupZoneFromPostalCode(value) {
   return null;
 }
 
+const FILTER_WEIGHTS = {
+  category: 1.2,
+  region: 1.6,
+  sunlight: 2.2,
+  soil: 1.2,
+  water: 2.0,
+  setting: 2.3,
+  color: 0.8,
+  climate: 1.6,
+  hardiness: 1.9,
+  growthHabit: 1.0,
+  seasonality: 0.9,
+  pollinator: 1.0,
+  toxicity: 1.4,
+  pestResistance: 1.0,
+  drainage: 1.3,
+  wind: 1.0,
+  container: 1.2,
+  care: 1.1,
+  lifespan: 1.0,
+  cost: 0.9,
+  purpose: 1.7
+};
+
+const STRICT_FILTER_KEYS = new Set([
+  "category",
+  "region",
+  "sunlight",
+  "water",
+  "setting",
+  "hardiness",
+  "toxicity",
+  "container"
+]);
+
+const PARTIAL_MATCH_THRESHOLD = 0.72;
+
+const ORDERED_FILTER_OPTIONS = {
+  sunlight: ["Shade", "Part Shade", "Full Sun"],
+  water: ["Low", "Moderate", "High"],
+  care: ["Low", "Moderate", "High"],
+  pollinator: ["Low", "Moderate", "High"],
+  pestResistance: ["Low", "Moderate", "High"],
+  drainage: ["Moist", "Average", "Well-Drained"],
+  wind: ["Sheltered", "Moderate", "Wind Tolerant"],
+  cost: ["Budget", "Moderate", "Premium"]
+};
+
+function getMinimumVisibleScore(activeFilterCount) {
+  return activeFilterCount === 1 ? 7 : 6.6;
+}
+
+function getOrderedMatchScore(plantValue, selectedValue, options, adjacentScore = PARTIAL_MATCH_THRESHOLD) {
+  const plantIndex = options.indexOf(plantValue);
+  const selectedIndex = options.indexOf(selectedValue);
+  if (plantIndex === -1 || selectedIndex === -1) {
+    return plantValue === selectedValue ? 1 : 0;
+  }
+
+  const distance = Math.abs(plantIndex - selectedIndex);
+  if (distance === 0) {
+    return 1;
+  }
+
+  if (distance === 1) {
+    return adjacentScore;
+  }
+
+  return 0;
+}
+
+function parseHardinessRange(rangeValue) {
+  const matches = String(rangeValue || "").match(/^(\d+)\s*-\s*(\d+)$/);
+  if (!matches) {
+    return null;
+  }
+
+  return {
+    min: Number(matches[1]),
+    max: Number(matches[2])
+  };
+}
+
+function getHardinessMatchScore(plantValue, selectedValue) {
+  if (plantValue === selectedValue) {
+    return 1;
+  }
+
+  const plantRange = parseHardinessRange(plantValue);
+  const selectedRange = parseHardinessRange(selectedValue);
+  if (!plantRange || !selectedRange) {
+    return 0;
+  }
+
+  const overlapMin = Math.max(plantRange.min, selectedRange.min);
+  const overlapMax = Math.min(plantRange.max, selectedRange.max);
+  if (overlapMin <= overlapMax) {
+    return 0.82;
+  }
+
+  const gap = Math.min(
+    Math.abs(plantRange.min - selectedRange.max),
+    Math.abs(selectedRange.min - plantRange.max)
+  );
+
+  return gap === 1 ? PARTIAL_MATCH_THRESHOLD : 0;
+}
+
+function getFlexiblePlacementMatchScore(plantValue, selectedValue) {
+  if (plantValue === selectedValue) {
+    return 1;
+  }
+
+  if (plantValue === "Both" && ["Indoor", "Outdoor", "Container", "Ground"].includes(selectedValue)) {
+    return 1;
+  }
+
+  if (selectedValue === "Both" && ["Indoor", "Outdoor", "Container", "Ground"].includes(plantValue)) {
+    return PARTIAL_MATCH_THRESHOLD;
+  }
+
+  return 0;
+}
+
+function getRegionMatchScore(plantValue, selectedValue) {
+  if (plantValue === selectedValue) {
+    return 1;
+  }
+
+  if (plantValue === "Indoor Anywhere" && selectedValue !== "Indoor Anywhere") {
+    return PARTIAL_MATCH_THRESHOLD;
+  }
+
+  return 0;
+}
+
+function getFilterMatchDetails(plant, filter, selectedValue) {
+  if (!filter || !selectedValue || selectedValue === "Any") {
+    return {
+      score: 0,
+      isExact: false,
+      tagValue: ""
+    };
+  }
+
+  let matchScore = 0;
+
+  if (filter.key === "color") {
+    matchScore = plantMatchesColor(plant, selectedValue) ? 1 : 0;
+  } else if (filter.key === "category") {
+    matchScore = plantMatchesCategory(plant, selectedValue) ? 1 : 0;
+  } else if (filter.key === "hardiness") {
+    matchScore = getHardinessMatchScore(plant[filter.key], selectedValue);
+  } else if (filter.key === "setting" || filter.key === "container") {
+    matchScore = getFlexiblePlacementMatchScore(plant[filter.key], selectedValue);
+  } else if (filter.key === "region") {
+    matchScore = getRegionMatchScore(plant[filter.key], selectedValue);
+  } else if (ORDERED_FILTER_OPTIONS[filter.key]) {
+    matchScore = getOrderedMatchScore(plant[filter.key], selectedValue, ORDERED_FILTER_OPTIONS[filter.key]);
+  } else {
+    matchScore = plant[filter.key] === selectedValue ? 1 : 0;
+  }
+
+  return {
+    score: matchScore,
+    isExact: matchScore >= 0.999,
+    tagValue: filter.key === "color" ? getColorDisplayValue(plant.color) : plant[filter.key]
+  };
+}
+
 function scorePlant(plant) {
   const activeFilters = FILTERS.filter((filter) => state[filter.key] && state[filter.key] !== "Any");
-  const weights = {
-    category: 1.2,
-    region: 1.6,
-    sunlight: 2.2,
-    soil: 1.2,
-    water: 2.0,
-    setting: 2.3,
-    color: 0.8,
-    climate: 1.6,
-    hardiness: 1.9,
-    growthHabit: 1.0,
-    seasonality: 0.9,
-    pollinator: 1.0,
-    toxicity: 1.4,
-    pestResistance: 1.0,
-    drainage: 1.3,
-    wind: 1.0,
-    container: 1.2,
-    care: 1.1,
-    lifespan: 1.0,
-    cost: 0.9,
-    purpose: 1.7
-  };
 
   if (activeFilters.length === 0) {
     return {
@@ -2187,37 +2334,45 @@ function scorePlant(plant) {
   let matchedWeight = 0;
   let totalWeight = 0;
   const matchedTags = [];
+  let blockedByStrictFilter = false;
 
   for (const filter of activeFilters) {
-    const matchesFilter = filter.key === "color"
-      ? plantMatchesColor(plant, state[filter.key])
-      : filter.key === "category"
-        ? plantMatchesCategory(plant, state[filter.key])
-        : plant[filter.key] === state[filter.key];
+    const matchDetails = getFilterMatchDetails(plant, filter, state[filter.key]);
+    const weight = FILTER_WEIGHTS[filter.key] || 1;
+    totalWeight += weight;
 
-    if (!matchesFilter) {
-      return {
-        score: 0,
-        matchedTags: []
-      };
+    if (matchDetails.score === 0 && STRICT_FILTER_KEYS.has(filter.key)) {
+      blockedByStrictFilter = true;
     }
 
-    const weight = weights[filter.key] || 1;
-    totalWeight += weight;
-    if (matchesFilter) {
-      matchedWeight += weight;
+    matchedWeight += weight * matchDetails.score;
+
+    if (matchDetails.isExact) {
       matchedTags.push({
         label: filter.label,
-        value: filter.key === "color" ? getColorDisplayValue(plant.color) : plant[filter.key]
+        value: matchDetails.tagValue
       });
     }
   }
 
+  if (blockedByStrictFilter) {
+    return {
+      score: 0,
+      matchedTags: []
+    };
+  }
+
   const score = totalWeight > 0 ? (matchedWeight / totalWeight) * 10 : 0;
+  if (score < getMinimumVisibleScore(activeFilters.length)) {
+    return {
+      score: 0,
+      matchedTags: []
+    };
+  }
 
   return {
     score,
-    matchedTags: matchedTags.length > 0 ? matchedTags : buildMatchedTags(plant, FILTERS.slice(0, 5))
+    matchedTags
   };
 }
 
@@ -2279,6 +2434,12 @@ function compareRankedPlants(leftEntry, rightEntry, sortMode) {
     return rightEntry.score - leftEntry.score;
   }
 
+  const leftExactMatches = leftEntry.matchedTags?.length || 0;
+  const rightExactMatches = rightEntry.matchedTags?.length || 0;
+  if (leftExactMatches !== rightExactMatches) {
+    return rightExactMatches - leftExactMatches;
+  }
+
   return leftEntry.plant.commonName.localeCompare(rightEntry.plant.commonName, undefined, { sensitivity: "base" });
 }
 
@@ -2309,16 +2470,205 @@ function hasLikelyRealImage(plant) {
   return false;
 }
 
-function renderPlantCard(plant, score, matchedTags) {
+const MATCH_REASON_PRIORITY = [
+  "Sunlight",
+  "Water",
+  "Climate",
+  "Hardiness",
+  "Location",
+  "Indoor / Outdoor",
+  "Purpose / Function",
+  "Plant Color",
+  "Flower Colors",
+  "Category"
+];
+
+function getMatchReasonPriority(label) {
+  const priorityIndex = MATCH_REASON_PRIORITY.indexOf(label);
+  return priorityIndex === -1 ? MATCH_REASON_PRIORITY.length : priorityIndex;
+}
+
+function getTopMatchedReasons(matchedTags, limit = 3) {
+  const uniqueByLabel = [];
+  const seenLabels = new Set();
+
+  matchedTags.forEach((tag) => {
+    if (!tag || !tag.label || !tag.value) {
+      return;
+    }
+
+    const normalizedLabel = tag.label.toLowerCase();
+    if (seenLabels.has(normalizedLabel)) {
+      return;
+    }
+
+    seenLabels.add(normalizedLabel);
+    uniqueByLabel.push(tag);
+  });
+
+  return uniqueByLabel
+    .sort((leftTag, rightTag) => getMatchReasonPriority(leftTag.label) - getMatchReasonPriority(rightTag.label))
+    .slice(0, limit);
+}
+
+function formatReasonChip(tag) {
+  switch (tag.label) {
+    case "Sunlight":
+      return tag.value;
+    case "Water":
+      return `${tag.value} Water`;
+    case "Climate":
+      return `${tag.value} Climate`;
+    case "Hardiness":
+      return `Zone ${tag.value}`;
+    case "Location":
+      return tag.value;
+    case "Indoor / Outdoor":
+      return `${tag.value} Growing`;
+    case "Plant Color":
+      return `${tag.value} Color`;
+    case "Flower Colors":
+      return `${tag.value} Blooms`;
+    case "Purpose / Function":
+      return tag.value;
+    default:
+      return tag.value;
+  }
+}
+
+function formatReasonForSentence(tag) {
+  const value = String(tag.value || "").toLowerCase();
+
+  switch (tag.label) {
+    case "Sunlight":
+      return `${value} sunlight`;
+    case "Water":
+      return `${value} water needs`;
+    case "Climate":
+      return `${value} climate`;
+    case "Hardiness":
+      return `hardiness zone ${tag.value}`;
+    case "Location":
+      return value.includes("indoor") ? "indoor-friendly placement" : `${value} region`;
+    case "Indoor / Outdoor":
+      if (value === "both") {
+        return "indoor or outdoor placement";
+      }
+
+      return `${value} placement`;
+    case "Plant Color":
+      return `${value} color`;
+    case "Flower Colors":
+      return `${value} bloom colors`;
+    case "Purpose / Function":
+      return `${value} garden goals`;
+    case "Category":
+      return `${value} plant types`;
+    default:
+      return `${value} ${String(tag.label || "").toLowerCase()}`.trim();
+  }
+}
+
+function formatNaturalList(values) {
+  if (values.length === 0) {
+    return "";
+  }
+
+  if (values.length === 1) {
+    return values[0];
+  }
+
+  if (values.length === 2) {
+    return `${values[0]} and ${values[1]}`;
+  }
+
+  return `${values.slice(0, -1).join(", ")}, and ${values.at(-1)}`;
+}
+
+function getScoreTier(score) {
+  if (score >= 9.5) {
+    return {
+      className: "score-high",
+      headline: "Perfect Match",
+      contextLead: "Perfect for"
+    };
+  }
+
+  if (score >= 8) {
+    return {
+      className: "score-good",
+      headline: "Strong Match",
+      contextLead: "Strong for"
+    };
+  }
+
+  if (score >= 6) {
+    return {
+      className: "score-medium",
+      headline: "Possible Match",
+      contextLead: "Promising for"
+    };
+  }
+
+  return {
+    className: "score-low",
+    headline: "Stretch Match",
+    contextLead: "A stretch for"
+  };
+}
+
+function getScorePresentation(plant, score, matchedTags, hasActiveFilters) {
+  const reasons = getTopMatchedReasons(matchedTags, 3);
+
+  if (!hasActiveFilters) {
+    return {
+      className: "score-featured",
+      eyebrow: "PlantPlanner Pick",
+      headline: "Featured on Home",
+      context: hasLikelyRealImage(plant)
+        ? "Featured first so you can browse image-backed plants right away."
+        : "Featured first so you can start browsing the catalog quickly.",
+      reasons
+    };
+  }
+
+  const tier = getScoreTier(score);
+  const reasonPhrases = reasons.map((tag) => formatReasonForSentence(tag));
+
+  return {
+    className: tier.className,
+    eyebrow: "PlantPlanner Match",
+    headline: `${tier.headline} (${score.toFixed(1)}/10)`,
+    context: reasonPhrases.length > 0
+      ? `${tier.contextLead} your ${formatNaturalList(reasonPhrases)} conditions.`
+      : "Close overall fit for your current filters.",
+    reasons
+  };
+}
+
+function renderPlantCard(plant, score, matchedTags, hasActiveFilters) {
   const plantGuideUrl = buildPlantGuideUrl(plant);
   const fallbackImage = plant.fallbackImage || createPlantImage(plant.commonName, plant.color, plant.setting);
   const initialImageSource = hasLikelyRealImage(plant) ? plant.image : fallbackImage;
   const imageCandidates = serializePlantImageCandidates(plant.imageCandidates);
   const colorList = getPlantColorList(plant.color);
+  const scorePresentation = getScorePresentation(plant, score, matchedTags, hasActiveFilters);
   const colorTag = colorList.length > 1
     ? renderResultTag("Flower Colors", colorList.join(", "), true)
     : renderResultTag("Plant Color", getColorDisplayValue(plant.color), true);
   const secondaryMatchedTags = matchedTags.filter((tag) => !["Plant Color", "Flower Colors", "Sunlight", "Water"].includes(tag.label));
+  const matchReasonMarkup = scorePresentation.reasons.length > 0
+    ? `
+        <div class="match-reason-list">
+          ${scorePresentation.reasons.map((tag) => `
+            <span class="match-reason">
+              <span class="match-reason-check" aria-hidden="true">&#10003;</span>
+              <span>${formatReasonChip(tag)}</span>
+            </span>
+          `).join("")}
+        </div>
+      `
+    : "";
 
   return `
     <article class="result-card">
@@ -2340,14 +2690,18 @@ function renderPlantCard(plant, score, matchedTags) {
             <h3>${plant.commonName}</h3>
             <p class="latin-name">${plant.latinName}</p>
           </div>
-          <div class="score-pill">
-            <span>${score.toFixed(1)}/10</span>
-            <small>Match Score</small>
+          <div class="result-score-stack">
+            <div class="score-pill ${scorePresentation.className}">
+              <small>${scorePresentation.eyebrow}</small>
+              <span>${scorePresentation.headline}</span>
+            </div>
+            <p class="score-context">${scorePresentation.context}</p>
           </div>
         </div>
         <p class="summary-copy">
           ${plant.category} option best for ${plant.purpose.toLowerCase()} projects with ${plant.sunlight.toLowerCase()}, ${plant.water.toLowerCase()} water needs, and ${plant.care.toLowerCase()} maintenance.
         </p>
+        ${matchReasonMarkup}
         <div class="tag-grid">
           ${renderResultTag("Suggested Nursery Cost", plant.nurseryCost)}
           ${renderResultTag("Sunlight", plant.sunlight)}
