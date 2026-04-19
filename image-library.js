@@ -193,7 +193,7 @@ function getPreviewState(slot, storedImage, isCleared) {
       src: storedImage,
       candidates: dedupeValues([storedImage, ...wiredCandidates]),
       fallback: slot.fallbackImage || "",
-      label: "Browser override",
+      label: "Saved on this computer",
       badgeClass: "is-saved",
       hint: "Drop, paste, or choose a replacement",
       isCleared: false,
@@ -539,7 +539,7 @@ function saveBrowserImageValue(plantName, value) {
   try {
     clearPreviewClearedState(plantName);
     window.localStorage.setItem(getImageKey(plantName), value);
-    setStatus(`Saved image for ${plantName}.`);
+    setStatus(`Saved image for ${plantName} on this computer only. It is not in the Shared Library yet.`);
     return true;
   } catch {
     setStatus("Image could not be saved. The browser storage limit may have been reached.");
@@ -565,7 +565,7 @@ async function saveSharedImageFromFile(plantName, file) {
     await sharedImageService.uploadSharedPlantImage(plantName, preparedFile);
     clearStoredImage(plantName, true);
     clearPreviewClearedState(plantName);
-    setStatus(`Uploaded shared image for ${plantName}. This photo is now available to everyone.`);
+    setStatus(`Saved image for ${plantName} in Shared Library. This photo is now available to everyone.`);
     return true;
   } catch (error) {
     setStatus(`Shared upload failed for ${plantName}. ${getErrorMessage(error)}`);
@@ -827,7 +827,7 @@ function serializeImageCandidates(candidates) {
 function getSourceBadgeMeta(src, storedImage = "", sharedImage = "") {
   if (storedImage) {
     return {
-      label: "Browser override",
+      label: "Saved on this computer",
       badgeClass: "is-saved"
     };
   }
@@ -835,7 +835,7 @@ function getSourceBadgeMeta(src, storedImage = "", sharedImage = "") {
   const value = String(src || "");
   if (sharedImage && value === sharedImage) {
     return {
-      label: "Shared admin image",
+      label: "Saved in Shared Library",
       badgeClass: "is-shared"
     };
   }
@@ -1038,8 +1038,8 @@ function syncSaveModeButtons() {
     }
 
     imageSaveModeHint.textContent = imageSaveMode === "shared"
-      ? "Shared Library mode is active. New uploads will replace the shared plant image for everyone."
-      : "This Browser Only mode is active. New uploads stay on this computer and do not change the shared library.";
+      ? "Shared Library mode is active. New uploads are saved for everyone and should show a Shared Library badge."
+      : "This Browser Only mode is active. New uploads are saved on this computer only and are not shared.";
   }
 }
 
