@@ -1496,6 +1496,97 @@ select {
   color: var(--muted);
 }
 
+.library-admin-card {
+  margin-top: 14px;
+  border-radius: 22px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(23, 49, 38, 0.08);
+}
+
+.library-admin-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 18px;
+}
+
+.library-admin-card-header h3 {
+  margin-bottom: 6px;
+}
+
+.library-admin-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.library-admin-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.9fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.library-auth-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.library-field {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.library-field span {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.library-auth-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+}
+
+.library-mode-panel {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.library-mode-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mode-toggle-button {
+  border: 1px solid rgba(43, 122, 75, 0.16);
+  border-radius: 999px;
+  padding: 9px 14px;
+  font: inherit;
+  font-weight: 800;
+  color: var(--green-dark);
+  background: rgba(229, 242, 228, 0.92);
+  cursor: pointer;
+}
+
+.mode-toggle-button.is-active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--green), var(--green-dark));
+  box-shadow: 0 10px 24px rgba(33, 96, 62, 0.18);
+}
+
+.mode-toggle-button:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
 .image-library-toolbar {
   display: flex;
   justify-content: flex-end;
@@ -1612,6 +1703,10 @@ select {
   background: rgba(158, 104, 24, 0.84);
 }
 
+.image-source-chip.is-shared {
+  background: rgba(105, 82, 173, 0.86);
+}
+
 .image-source-chip.is-project {
   background: rgba(33, 96, 62, 0.84);
 }
@@ -1710,6 +1805,22 @@ select {
 }
 
 @media (max-width: 980px) {
+  .library-admin-card-header {
+    flex-direction: column;
+  }
+
+  .library-admin-meta {
+    justify-content: flex-start;
+  }
+
+  .library-admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .library-auth-form {
+    grid-template-columns: 1fr;
+  }
+
   .home-results-intro {
     display: none;
   }

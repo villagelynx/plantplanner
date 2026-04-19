@@ -4,8 +4,10 @@ const plantGuideSummary = document.getElementById("plantGuideSummary");
 const plantGuideImage = document.getElementById("plantGuideImage");
 const plantGuideFacts = document.getElementById("plantGuideFacts");
 const plantGuideSections = document.getElementById("plantGuideSections");
+let currentGuidePlant = null;
 
 initializePlantGuidePage();
+bindSharedGuideImageRefresh();
 
 function initializePlantGuidePage() {
   if (!plantGuideTitle || !plantGuideSections || !window.GARDENING_PLANTS || !window.GARDENING_GET_PLANT_GUIDE_BY_SLUG) {
@@ -27,27 +29,14 @@ function initializePlantGuidePage() {
     return;
   }
 
+  currentGuidePlant = plant;
+
   document.title = `${plant.commonName} Plant Guide | Plant Planner`;
   plantGuideTitle.textContent = `${plant.commonName} Plant Guide`;
   plantGuideLatin.textContent = plant.latinName;
   plantGuideSummary.textContent = guide.summary;
 
-  plantGuideImage.src = plant.image;
-  plantGuideImage.alt = plant.commonName;
-  plantGuideImage.dataset.fallback = plant.fallbackImage || plant.image;
-  plantGuideImage.dataset.imageCandidates = typeof serializePlantImageCandidates === "function"
-    ? serializePlantImageCandidates(plant.imageCandidates)
-    : "";
-  plantGuideImage.dataset.imageCandidateIndex = "0";
-  plantGuideImage.onerror = function onGuideImageError() {
-    if (typeof window.GARDENING_HANDLE_PLANT_IMAGE_ERROR === "function") {
-      window.GARDENING_HANDLE_PLANT_IMAGE_ERROR(this);
-      return;
-    }
-
-    this.onerror = null;
-    this.src = this.dataset.fallback;
-  };
+  renderGuideImage(plant);
 
   plantGuideFacts.innerHTML = [
     renderGuideFact("Category", plant.category),
@@ -74,6 +63,49 @@ function initializePlantGuidePage() {
   lifecycleSections.push(renderGuideSection("Winterizing", guide.winterizing));
 
   plantGuideSections.innerHTML = lifecycleSections.filter(Boolean).join("");
+}
+
+function renderGuideImage(plant) {
+  if (!plantGuideImage || !plant) {
+    return;
+  }
+
+  const imageState = typeof window.GARDENING_GET_PLANT_IMAGE_STATE === "function"
+    ? window.GARDENING_GET_PLANT_IMAGE_STATE(plant)
+    : {
+        src: plant.image,
+        fallback: plant.fallbackImage || plant.image,
+        candidates: Array.isArray(plant.imageCandidates) ? plant.imageCandidates : []
+      };
+
+  plantGuideImage.src = imageState.src;
+  plantGuideImage.alt = plant.commonName;
+  plantGuideImage.dataset.fallback = imageState.fallback;
+  plantGuideImage.dataset.imageCandidates = typeof serializePlantImageCandidates === "function"
+    ? serializePlantImageCandidates(imageState.candidates)
+    : "";
+  plantGuideImage.dataset.imageCandidateIndex = "0";
+  plantGuideImage.onerror = function onGuideImageError() {
+    if (typeof window.GARDENING_HANDLE_PLANT_IMAGE_ERROR === "function") {
+      window.GARDENING_HANDLE_PLANT_IMAGE_ERROR(this);
+      return;
+    }
+
+    this.onerror = null;
+    this.src = this.dataset.fallback;
+  };
+}
+
+function bindSharedGuideImageRefresh() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.addEventListener("gardening:shared-images-updated", () => {
+    if (currentGuidePlant && plantGuideImage) {
+      renderGuideImage(currentGuidePlant);
+    }
+  });
 }
 
 function renderGuideFact(label, value) {
@@ -113,6 +145,7 @@ function renderGuideSection(title, items) {
 }
 
 function renderGuideNotFound() {
+  currentGuidePlant = null;
   document.title = "Plant Guide Not Found | Plant Planner";
   plantGuideTitle.textContent = "Plant Guide Not Found";
   plantGuideLatin.textContent = "";

@@ -1861,8 +1861,12 @@ window.GARDENING_IMAGE_FILE_MAPS = {
   remote: POPULAR_PLANT_REMOTE_FILES
 };
 window.GARDENING_NORMALIZE_PLANT_IMAGE_PATH = normalizePlantImagePath;
+window.GARDENING_GET_PLANT_IMAGE_STATE = getPlantImageState;
+window.GARDENING_GET_SHARED_PLANT_IMAGE_URL = getSharedPlantImageUrl;
+window.GARDENING_SLUGIFY_PLANT_NAME = slugifyPlantName;
 
 let plantPlannerBootstrapped = false;
+let sharedImageRefreshBound = false;
 
 function bootPlantPlanner() {
   if (plantPlannerBootstrapped) {
@@ -1871,6 +1875,7 @@ function bootPlantPlanner() {
 
   plantPlannerBootstrapped = true;
   initializeBrowseSearchForms();
+  bindSharedImageRefresh();
 
   if (resultsSortSelect) {
     resultsSortSelect.addEventListener("change", () => {
@@ -1889,6 +1894,19 @@ function bootPlantPlanner() {
   if (window.__PLANT_PLANNER_BOOT) {
     window.__PLANT_PLANNER_BOOT.appLoaded = true;
   }
+}
+
+function bindSharedImageRefresh() {
+  if (sharedImageRefreshBound || typeof window === "undefined") {
+    return;
+  }
+
+  sharedImageRefreshBound = true;
+  window.addEventListener("gardening:shared-images-updated", () => {
+    if (filterGrid && resultsList && resultsCount && databaseCount) {
+      renderResults();
+    }
+  });
 }
 
 function resetFilters() {
@@ -2487,24 +2505,87 @@ function getDefaultHomeResults(ranked) {
   return [...featuredEntries, ...fallbackEntries].slice(0, DEFAULT_HOME_RESULTS_LIMIT);
 }
 
-function hasLikelyRealImage(plant) {
+function getSharedPlantImageEntry(name) {
+  if (typeof window === "undefined" || !window.GARDENING_SHARED_IMAGE_OVERRIDES) {
+    return null;
+  }
+
+  const plantKey = slugifyPlantName(name);
+  return window.GARDENING_SHARED_IMAGE_OVERRIDES[plantKey] || null;
+}
+
+function getSharedPlantImageUrl(name) {
+  return getSharedPlantImageEntry(name)?.publicUrl || "";
+}
+
+function getBaselinePlantImageCandidates(plant) {
   if (!plant) {
-    return false;
+    return [];
   }
 
-  if (getStoredPlantImage(plant.commonName)) {
-    return true;
+  const fallbackImage = plant.fallbackImage || createPlantImage(plant.commonName, plant.color, plant.setting);
+  const directImage = Boolean(plant.image) && !String(plant.image).startsWith("data:image/svg+xml")
+    ? plant.image
+    : "";
+
+  return dedupePlantImageCandidates([
+    directImage,
+    ...(Array.isArray(plant.imageCandidates) ? plant.imageCandidates : [])
+  ].filter((candidate) => candidate && candidate !== fallbackImage));
+}
+
+function getPlantImageState(plant) {
+  if (!plant) {
+    return {
+      src: "",
+      candidates: [],
+      fallback: "",
+      hasRealImage: false
+    };
   }
 
-  if (POPULAR_PLANT_IMAGE_FILES[plant.commonName] || POPULAR_PLANT_REMOTE_FILES[plant.commonName]) {
-    return true;
+  const fallbackImage = plant.fallbackImage || createPlantImage(plant.commonName, plant.color, plant.setting);
+  const storedImage = getStoredPlantImage(plant.commonName);
+  const sharedImage = getSharedPlantImageUrl(plant.commonName);
+  const candidates = dedupePlantImageCandidates([
+    sharedImage,
+    ...getBaselinePlantImageCandidates(plant)
+  ]);
+
+  if (storedImage) {
+    return {
+      src: storedImage,
+      candidates: dedupePlantImageCandidates([storedImage, ...candidates]),
+      fallback: fallbackImage,
+      storedImage,
+      sharedImage,
+      hasRealImage: true
+    };
   }
 
-  if (!Array.isArray(plant.imageCandidates) || plant.imageCandidates.length === 0) {
-    return Boolean(plant.image) && !String(plant.image).startsWith("data:image/svg+xml");
+  if (candidates.length > 0) {
+    return {
+      src: candidates[0],
+      candidates,
+      fallback: fallbackImage,
+      storedImage: "",
+      sharedImage,
+      hasRealImage: true
+    };
   }
 
-  return false;
+  return {
+    src: fallbackImage,
+    candidates: [],
+    fallback: fallbackImage,
+    storedImage: "",
+    sharedImage,
+    hasRealImage: false
+  };
+}
+
+function hasLikelyRealImage(plant) {
+  return getPlantImageState(plant).hasRealImage;
 }
 
 const MATCH_REASON_PRIORITY = [
@@ -2732,9 +2813,10 @@ function renderPlantCardSafely(plant, score, matchedTags, hasActiveFilters) {
 
 function renderPlantCard(plant, score, matchedTags, hasActiveFilters) {
   const plantGuideUrl = buildPlantGuideUrl(plant);
-  const fallbackImage = plant.fallbackImage || createPlantImage(plant.commonName, plant.color, plant.setting);
-  const initialImageSource = hasLikelyRealImage(plant) ? plant.image : fallbackImage;
-  const imageCandidates = serializePlantImageCandidates(plant.imageCandidates);
+  const imageState = getPlantImageState(plant);
+  const fallbackImage = imageState.fallback;
+  const initialImageSource = imageState.src;
+  const imageCandidates = serializePlantImageCandidates(imageState.candidates);
   const colorList = getPlantColorList(plant.color);
   const scorePresentation = getScorePresentation(plant, score, matchedTags, hasActiveFilters);
   const colorTag = colorList.length > 1

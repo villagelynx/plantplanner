@@ -6,6 +6,7 @@ const browseDatabaseCount = document.getElementById("browseDatabaseCount");
 const browseResultsList = document.getElementById("browseResultsList");
 const browseSearchInput = document.getElementById("browseSearchInput");
 const BROWSE_RENDER_LIMIT = 120;
+let browseSharedImageRefreshBound = false;
 
 function filterPlantsForView(plants, view) {
   if (view === "all") {
@@ -343,6 +344,7 @@ function getBrowseGroupLabel(plant, view) {
 }
 
 initializeBrowsePage();
+bindBrowseSharedImageRefresh();
 
 function initializeBrowsePage() {
   if (!browseResultsList || !window.GARDENING_PLANTS || !window.GARDENING_RENDER_PLANT_CARD) {
@@ -411,6 +413,19 @@ function initializeBrowsePage() {
       </section>
     `)
     .join("");
+}
+
+function bindBrowseSharedImageRefresh() {
+  if (browseSharedImageRefreshBound || typeof window === "undefined") {
+    return;
+  }
+
+  browseSharedImageRefreshBound = true;
+  window.addEventListener("gardening:shared-images-updated", () => {
+    if (browseResultsList) {
+      initializeBrowsePage();
+    }
+  });
 }
 
 function filterPlantsForQuery(plants, query) {

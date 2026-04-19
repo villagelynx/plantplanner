@@ -4,6 +4,16 @@ const imageLibraryGrid = document.getElementById("imageLibraryGrid");
 const imageLibraryStatus = document.getElementById("imageLibraryStatus");
 const imageLibraryCount = document.getElementById("imageLibraryCount");
 const imageLibrarySearch = document.getElementById("imageLibrarySearch");
+const sharedImageAuthForm = document.getElementById("sharedImageAuthForm");
+const sharedImageEmail = document.getElementById("sharedImageEmail");
+const sharedImagePassword = document.getElementById("sharedImagePassword");
+const sharedImageSignInButton = document.getElementById("sharedImageSignIn");
+const sharedImageSignOutButton = document.getElementById("sharedImageSignOut");
+const sharedImageConfigStatus = document.getElementById("sharedImageConfigStatus");
+const sharedImageAuthStatus = document.getElementById("sharedImageAuthStatus");
+const imageSaveModeBrowserButton = document.getElementById("imageSaveModeBrowser");
+const imageSaveModeSharedButton = document.getElementById("imageSaveModeShared");
+const imageSaveModeHint = document.getElementById("imageSaveModeHint");
 const DEFAULT_VISIBLE_SLOTS = 50;
 const PREFERRED_IMAGE_LIBRARY_ORIGIN = "https://plantplanner.ca";
 const imageFileMaps = window.GARDENING_IMAGE_FILE_MAPS || {
@@ -15,6 +25,7 @@ const imageFileMaps = window.GARDENING_IMAGE_FILE_MAPS || {
 let allPlantSlots = [];
 let filteredPlantSlots = [];
 let activePasteSlotIndex = -1;
+let imageSaveMode = "browser";
 
 redirectImageLibraryToPreferredOrigin();
 initializeImageLibrary();
@@ -42,6 +53,8 @@ function initializeImageLibrary() {
   if (!imageLibraryGrid || !window.GARDENING_PLANTS) {
     return;
   }
+
+  initializeSharedAdminControls();
 
   allPlantSlots = [...window.GARDENING_PLANTS]
     .sort((a, b) => a.commonName.localeCompare(b.commonName))
@@ -74,6 +87,8 @@ function initializeImageLibrary() {
   }
 
   document.addEventListener("paste", handleImagePaste);
+  window.addEventListener("gardening:shared-images-updated", handleSharedImagesUpdated);
+  window.addEventListener("gardening:shared-auth-updated", syncSharedAdminControls);
 }
 
 function getFilteredSlots(query) {
@@ -113,8 +128,11 @@ function renderSlotCard(slot, index) {
   const selectedClass = activePasteSlotIndex === index ? " is-selected" : "";
   const deleteLabel = previewState.src ? "Delete Current Image" : "No Image to Delete";
   const deleteDisabled = previewState.src ? "" : " disabled";
-  const restoreButton = previewState.isCleared && slot.previewCandidates.length > 0
+  const restoreButton = previewState.isCleared && previewState.restoreCandidates.length > 0
     ? `<button class="secondary-button compact-button ghost-button" type="button" data-action="restore" data-index="${index}">Restore Wired Image</button>`
+    : "";
+  const deleteSharedButton = previewState.sharedImage
+    ? `<button class="secondary-button compact-button ghost-button" type="button" data-action="delete-shared" data-index="${index}">Delete Shared</button>`
     : "";
 
   return `
@@ -134,6 +152,7 @@ function renderSlotCard(slot, index) {
         <button class="secondary-button compact-button" type="button" data-action="choose" data-index="${index}">Choose File</button>
         <button class="secondary-button compact-button ghost-button" type="button" data-action="paste" data-index="${index}">Paste</button>
         ${restoreButton}
+        ${deleteSharedButton}
         <button class="secondary-button compact-button danger-button" type="button" data-action="delete" data-index="${index}"${deleteDisabled}>${deleteLabel}</button>
       </div>
     </article>
@@ -162,15 +181,20 @@ function renderDropzoneContent(slot, index, previewState) {
 }
 
 function getPreviewState(slot, storedImage, isCleared) {
+  const sharedImage = getSharedImageUrl(slot.name);
+  const wiredCandidates = dedupeValues([sharedImage, ...slot.previewCandidates]);
+
   if (storedImage) {
     return {
       src: storedImage,
-      candidates: [],
-      fallback: "",
+      candidates: dedupeValues([storedImage, ...wiredCandidates]),
+      fallback: slot.fallbackImage || "",
       label: "Browser override",
       badgeClass: "is-saved",
       hint: "Drop, paste, or choose a replacement",
-      isCleared: false
+      isCleared: false,
+      restoreCandidates: wiredCandidates,
+      sharedImage
     };
   }
 
@@ -181,25 +205,29 @@ function getPreviewState(slot, storedImage, isCleared) {
       fallback: "",
       label: "Paste-ready slot",
       badgeClass: "is-empty",
-      hint: slot.previewCandidates.length > 0
+      hint: wiredCandidates.length > 0
         ? "Paste or choose a replacement"
         : "Drop, paste, or choose a new image",
-      isCleared: true
+      isCleared: true,
+      restoreCandidates: wiredCandidates,
+      sharedImage
     };
   }
 
-  if (slot.previewCandidates.length > 0) {
-    const firstCandidate = slot.previewCandidates[0];
-    const sourceMeta = getSourceBadgeMeta(firstCandidate);
+  if (wiredCandidates.length > 0) {
+    const firstCandidate = wiredCandidates[0];
+    const sourceMeta = getSourceBadgeMeta(firstCandidate, "", sharedImage);
 
     return {
       src: firstCandidate,
-      candidates: slot.previewCandidates,
+      candidates: wiredCandidates,
       fallback: slot.fallbackImage || "",
       label: sourceMeta.label,
       badgeClass: sourceMeta.badgeClass,
       hint: "Drop, paste, or choose a replacement",
-      isCleared: false
+      isCleared: false,
+      restoreCandidates: wiredCandidates,
+      sharedImage
     };
   }
 
@@ -210,7 +238,9 @@ function getPreviewState(slot, storedImage, isCleared) {
     label: "Drop-in ready",
     badgeClass: "is-empty",
     hint: "Drop, paste, or double-click",
-    isCleared: false
+    isCleared: false,
+    restoreCandidates: [],
+    sharedImage: ""
   };
 }
 
@@ -221,6 +251,7 @@ function attachSlotEvents(slot, index) {
   const pasteButton = document.querySelector(`[data-action="paste"][data-index="${index}"]`);
   const deleteButton = document.querySelector(`[data-action="delete"][data-index="${index}"]`);
   const restoreButton = document.querySelector(`[data-action="restore"][data-index="${index}"]`);
+  const deleteSharedButton = document.querySelector(`[data-action="delete-shared"][data-index="${index}"]`);
   const card = document.getElementById(`image-slot-card-${index}`);
 
   if (card) {
@@ -237,8 +268,10 @@ function attachSlotEvents(slot, index) {
       if (!file) {
         return;
       }
-      await saveImageFromFile(slot.name, file);
-      updateSlotPreview(slot, index);
+      const didSave = await saveImageFromFile(slot.name, file);
+      if (didSave) {
+        updateSlotPreview(slot, index);
+      }
     });
   }
 
@@ -307,8 +340,10 @@ function attachSlotEvents(slot, index) {
       if (!file) {
         return;
       }
-      await saveImageFromFile(slot.name, file);
-      updateSlotPreview(slot, index);
+      const didSave = await saveImageFromFile(slot.name, file);
+      if (didSave) {
+        updateSlotPreview(slot, index);
+      }
     });
   }
 
@@ -334,6 +369,20 @@ function attachSlotEvents(slot, index) {
   if (restoreButton) {
     restoreButton.addEventListener("click", () => {
       restorePreviewImage(slot.name);
+      updateSlotPreview(slot, index);
+      focusSlotDropzone(index);
+    });
+  }
+
+  if (deleteSharedButton) {
+    deleteSharedButton.addEventListener("click", async () => {
+      setActivePasteSlot(index);
+      const didDelete = await deleteSharedImage(slot.name);
+      if (!didDelete) {
+        focusSlotDropzone(index);
+        return;
+      }
+
       updateSlotPreview(slot, index);
       focusSlotDropzone(index);
     });
@@ -375,7 +424,7 @@ function bindPreviewSourceStatus(slot, index, dropzone) {
 
   const syncSourceChip = () => {
     const storedImage = getStoredImage(slot.name);
-    const sourceMeta = getSourceBadgeMeta(previewImage.currentSrc || previewImage.src, storedImage);
+    const sourceMeta = getSourceBadgeMeta(previewImage.currentSrc || previewImage.src, storedImage, getSharedImageUrl(slot.name));
     updateSourceChip(index, sourceMeta);
   };
 
@@ -416,15 +465,23 @@ async function trySavePastedImage(event, index) {
 
   const clipboardImage = await extractClipboardImage(event);
   if (clipboardImage.file) {
-    await saveImageFromFile(slot.name, clipboardImage.file);
-    updateSlotPreview(slot, index);
-    return true;
+    const didSave = await saveImageFromFile(slot.name, clipboardImage.file);
+    if (didSave) {
+      updateSlotPreview(slot, index);
+      return true;
+    }
+
+    return false;
   }
 
   if (clipboardImage.src) {
-    saveImageValue(slot.name, clipboardImage.src);
-    updateSlotPreview(slot, index);
-    return true;
+    const didSave = await saveImageValue(slot.name, clipboardImage.src);
+    if (didSave) {
+      updateSlotPreview(slot, index);
+      return true;
+    }
+
+    return false;
   }
 
   setStatus(`Clipboard did not include a usable image for ${slot.name}. Try drag and drop or Choose File.`);
@@ -434,15 +491,23 @@ async function trySavePastedImage(event, index) {
 async function pasteImageFromClipboard(slot, index) {
   const clipboardImage = await extractClipboardImage();
   if (clipboardImage.file) {
-    await saveImageFromFile(slot.name, clipboardImage.file);
-    updateSlotPreview(slot, index);
-    return true;
+    const didSave = await saveImageFromFile(slot.name, clipboardImage.file);
+    if (didSave) {
+      updateSlotPreview(slot, index);
+      return true;
+    }
+
+    return false;
   }
 
   if (clipboardImage.src) {
-    saveImageValue(slot.name, clipboardImage.src);
-    updateSlotPreview(slot, index);
-    return true;
+    const didSave = await saveImageValue(slot.name, clipboardImage.src);
+    if (didSave) {
+      updateSlotPreview(slot, index);
+      return true;
+    }
+
+    return false;
   }
 
   setStatus(`Clipboard did not expose a usable image for ${slot.name}. Try Ctrl+V after clicking the card, or use Choose File.`);
@@ -450,17 +515,87 @@ async function pasteImageFromClipboard(slot, index) {
 }
 
 async function saveImageFromFile(plantName, file) {
+  if (shouldUseSharedSaveMode()) {
+    return saveSharedImageFromFile(plantName, file);
+  }
+
   const dataUrl = await readFileAsDataUrl(file);
-  saveImageValue(plantName, dataUrl);
+  return saveBrowserImageValue(plantName, dataUrl);
 }
 
-function saveImageValue(plantName, value) {
+async function saveImageValue(plantName, value) {
+  if (shouldUseSharedSaveMode()) {
+    return saveSharedImageValue(plantName, value);
+  }
+
+  return saveBrowserImageValue(plantName, value);
+}
+
+function saveBrowserImageValue(plantName, value) {
   try {
     clearPreviewClearedState(plantName);
     window.localStorage.setItem(getImageKey(plantName), value);
     setStatus(`Saved image for ${plantName}.`);
+    return true;
   } catch {
     setStatus("Image could not be saved. The browser storage limit may have been reached.");
+    return false;
+  }
+}
+
+async function saveSharedImageFromFile(plantName, file) {
+  const sharedImageService = getSharedImageService();
+  if (!sharedImageService?.isConfigured || !sharedImageService.isConfigured()) {
+    setStatus("Supabase is not configured yet. Add your project URL and anon key in supabase-config.js first.");
+    return false;
+  }
+
+  if (!sharedImageService.getSession || !sharedImageService.getSession()?.user) {
+    setStatus("Sign in above before saving to the shared image library.");
+    return false;
+  }
+
+  try {
+    await sharedImageService.uploadSharedPlantImage(plantName, file);
+    clearStoredImage(plantName, true);
+    clearPreviewClearedState(plantName);
+    setStatus(`Uploaded shared image for ${plantName}. This photo is now available to everyone.`);
+    return true;
+  } catch (error) {
+    setStatus(`Shared upload failed for ${plantName}. ${getErrorMessage(error)}`);
+    return false;
+  }
+}
+
+async function saveSharedImageValue(plantName, value) {
+  try {
+    const imageFile = await createFileFromImageSource(plantName, value);
+    return saveSharedImageFromFile(plantName, imageFile);
+  } catch (error) {
+    setStatus(`Shared upload needs a real image file or data image for ${plantName}. ${getErrorMessage(error)}`);
+    return false;
+  }
+}
+
+async function deleteSharedImage(plantName) {
+  const sharedImageService = getSharedImageService();
+  if (!sharedImageService?.isConfigured || !sharedImageService.isConfigured()) {
+    setStatus("Supabase is not configured yet, so there is no shared image library to delete from.");
+    return false;
+  }
+
+  if (!sharedImageService.getSession || !sharedImageService.getSession()?.user) {
+    setStatus("Sign in above before deleting from the shared image library.");
+    return false;
+  }
+
+  try {
+    await sharedImageService.deleteSharedPlantImage(plantName);
+    setStatus(`Deleted the shared image for ${plantName}.`);
+    return true;
+  } catch (error) {
+    setStatus(`Could not delete the shared image for ${plantName}. ${getErrorMessage(error)}`);
+    return false;
   }
 }
 
@@ -679,7 +814,7 @@ function serializeImageCandidates(candidates) {
   }
 }
 
-function getSourceBadgeMeta(src, storedImage = "") {
+function getSourceBadgeMeta(src, storedImage = "", sharedImage = "") {
   if (storedImage) {
     return {
       label: "Browser override",
@@ -688,6 +823,13 @@ function getSourceBadgeMeta(src, storedImage = "") {
   }
 
   const value = String(src || "");
+  if (sharedImage && value === sharedImage) {
+    return {
+      label: "Shared admin image",
+      badgeClass: "is-shared"
+    };
+  }
+
   if (isRemoteImagePath(value)) {
     return {
       label: "Wired remote image",
@@ -740,6 +882,223 @@ function readFileAsDataUrl(file) {
   });
 }
 
+function getSharedImageService() {
+  return window.GARDENING_SHARED_IMAGE_SERVICE || null;
+}
+
+function getSharedImageUrl(plantName) {
+  const sharedImageService = getSharedImageService();
+  if (!sharedImageService?.getSharedImageUrl) {
+    return "";
+  }
+
+  return sharedImageService.getSharedImageUrl(plantName) || "";
+}
+
+function shouldUseSharedSaveMode() {
+  return imageSaveMode === "shared";
+}
+
+function initializeSharedAdminControls() {
+  if (sharedImageAuthForm) {
+    sharedImageAuthForm.addEventListener("submit", handleSharedSignIn);
+  }
+
+  if (sharedImageSignOutButton) {
+    sharedImageSignOutButton.addEventListener("click", handleSharedSignOut);
+  }
+
+  if (imageSaveModeBrowserButton) {
+    imageSaveModeBrowserButton.addEventListener("click", () => {
+      setImageSaveMode("browser");
+    });
+  }
+
+  if (imageSaveModeSharedButton) {
+    imageSaveModeSharedButton.addEventListener("click", () => {
+      const sharedImageService = getSharedImageService();
+      if (!sharedImageService?.isConfigured || !sharedImageService.isConfigured()) {
+        setStatus("Supabase is not configured yet. Add your project URL and anon key in supabase-config.js first.");
+        return;
+      }
+
+      setImageSaveMode("shared");
+    });
+  }
+
+  syncSharedAdminControls();
+}
+
+function handleSharedImagesUpdated() {
+  if (imageLibraryGrid) {
+    renderImageLibrary();
+  }
+
+  syncSharedAdminControls();
+}
+
+function setImageSaveMode(mode) {
+  imageSaveMode = mode === "shared" ? "shared" : "browser";
+  syncSaveModeButtons();
+}
+
+function syncSharedAdminControls() {
+  const sharedImageService = getSharedImageService();
+  const isConfigured = Boolean(sharedImageService?.isConfigured && sharedImageService.isConfigured());
+  const currentSession = sharedImageService?.getSession ? sharedImageService.getSession() : null;
+  const signedInEmail = currentSession?.user?.email || "";
+
+  if (imageSaveMode === "shared" && !isConfigured) {
+    imageSaveMode = "browser";
+  }
+
+  if (sharedImageConfigStatus) {
+    sharedImageConfigStatus.textContent = isConfigured ? "Supabase ready" : "Supabase not configured";
+    sharedImageConfigStatus.className = `image-source-chip ${isConfigured ? "is-project" : "is-empty"}`;
+  }
+
+  if (sharedImageAuthStatus) {
+    sharedImageAuthStatus.textContent = signedInEmail ? signedInEmail : (isConfigured ? "Signed out" : "Shared sign-in unavailable");
+    sharedImageAuthStatus.className = `image-source-chip ${signedInEmail ? "is-shared" : "is-empty"}`;
+  }
+
+  if (sharedImageEmail) {
+    sharedImageEmail.disabled = !isConfigured || Boolean(signedInEmail);
+  }
+
+  if (sharedImagePassword) {
+    sharedImagePassword.disabled = !isConfigured || Boolean(signedInEmail);
+  }
+
+  if (sharedImageSignInButton) {
+    sharedImageSignInButton.disabled = !isConfigured || Boolean(signedInEmail);
+  }
+
+  if (sharedImageSignOutButton) {
+    sharedImageSignOutButton.disabled = !signedInEmail;
+  }
+
+  syncSaveModeButtons();
+}
+
+function syncSaveModeButtons() {
+  const sharedImageService = getSharedImageService();
+  const isConfigured = Boolean(sharedImageService?.isConfigured && sharedImageService.isConfigured());
+  const signedIn = Boolean(sharedImageService?.getSession && sharedImageService.getSession()?.user);
+
+  if (imageSaveModeBrowserButton) {
+    imageSaveModeBrowserButton.classList.toggle("is-active", imageSaveMode === "browser");
+  }
+
+  if (imageSaveModeSharedButton) {
+    imageSaveModeSharedButton.disabled = !isConfigured;
+    imageSaveModeSharedButton.classList.toggle("is-active", imageSaveMode === "shared");
+  }
+
+  if (imageSaveModeHint) {
+    if (!isConfigured) {
+      imageSaveModeHint.textContent = "Fill in supabase-config.js first to turn on shared uploads for everyone.";
+      return;
+    }
+
+    if (imageSaveMode === "shared" && !signedIn) {
+      imageSaveModeHint.textContent = "Shared Library is selected, but you still need to sign in above before paste, drag, or Choose File can save for everyone.";
+      return;
+    }
+
+    imageSaveModeHint.textContent = imageSaveMode === "shared"
+      ? "Shared Library mode is active. New uploads will replace the shared plant image for everyone."
+      : "This Browser Only mode is active. New uploads stay on this computer and do not change the shared library.";
+  }
+}
+
+async function handleSharedSignIn(event) {
+  event.preventDefault();
+
+  const email = sharedImageEmail?.value.trim() || "";
+  const password = sharedImagePassword?.value || "";
+  const sharedImageService = getSharedImageService();
+
+  if (!sharedImageService?.isConfigured || !sharedImageService.isConfigured()) {
+    setStatus("Supabase is not configured yet. Add your project URL and anon key in supabase-config.js first.");
+    return;
+  }
+
+  if (!email || !password) {
+    setStatus("Enter both the admin email and password to sign in.");
+    return;
+  }
+
+  try {
+    setStatus("Signing in to the shared image library...");
+    await sharedImageService.signIn(email, password);
+    if (sharedImagePassword) {
+      sharedImagePassword.value = "";
+    }
+    setImageSaveMode("shared");
+    setStatus(`Signed in as ${email}. Shared uploads are ready.`);
+  } catch (error) {
+    setStatus(`Could not sign in. ${getErrorMessage(error)}`);
+  }
+}
+
+async function handleSharedSignOut() {
+  const sharedImageService = getSharedImageService();
+  if (!sharedImageService?.signOut) {
+    setStatus("Shared image sign-out is not available right now.");
+    return;
+  }
+
+  try {
+    await sharedImageService.signOut();
+    setImageSaveMode("browser");
+    setStatus("Signed out of the shared image library.");
+  } catch (error) {
+    setStatus(`Could not sign out. ${getErrorMessage(error)}`);
+  }
+}
+
+async function createFileFromImageSource(plantName, value) {
+  const imageSource = String(value || "").trim();
+  if (!imageSource) {
+    throw new Error("Clipboard did not include a usable image source.");
+  }
+
+  const response = await fetch(imageSource);
+  if (!response.ok) {
+    throw new Error(`The image source returned ${response.status}.`);
+  }
+
+  const blob = await response.blob();
+  if (!blob || !String(blob.type || "").startsWith("image/")) {
+    throw new Error("The copied source was not an image file.");
+  }
+
+  const extension = getImageExtension(blob.type, imageSource);
+  return new File([blob], `${slugifyPlantName(plantName)}.${extension}`, {
+    type: blob.type || `image/${extension}`
+  });
+}
+
+function getImageExtension(contentType, imageSource) {
+  const normalizedType = String(contentType || "").toLowerCase();
+  if (normalizedType.startsWith("image/")) {
+    const subtype = normalizedType.split("/")[1] || "jpg";
+    return subtype === "jpeg" ? "jpg" : subtype;
+  }
+
+  const sourcePath = String(imageSource || "").split("?")[0];
+  if (sourcePath.includes(".")) {
+    return sourcePath.split(".").pop().toLowerCase();
+  }
+
+  return "jpg";
+}
+
+function getErrorMessage(error) {
+  return error?.message || "Please try again.";
+}
+
 function setStatus(message) {
   if (imageLibraryStatus) {
     imageLibraryStatus.textContent = message;
@@ -762,7 +1121,7 @@ function setActivePasteSlot(index) {
     return;
   }
 
-  if (getStoredImage(slot.name) || slot.previewCandidates.length > 0) {
+  if (getStoredImage(slot.name) || getSharedImageUrl(slot.name) || slot.previewCandidates.length > 0) {
     setStatus(`Selected ${slot.name}. Drop, choose, use Paste, or press Ctrl+V to replace the current preview.`);
     return;
   }

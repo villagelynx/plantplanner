@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Plant Planner Image Library</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20260418-1">
-  <link rel="stylesheet" href="./styles.css?v=20260419-39">
+  <link rel="stylesheet" href="./styles.css?v=20260419-40">
 </head>
 <body>
   <main class="page-shell">
@@ -19,7 +19,7 @@
       <p class="eyebrow">Image Library</p>
       <h1>Drop in real plant photos and save them for the planner.</h1>
       <p class="hero-copy">
-        This page now previews wired project and remote images when they exist. Any photo you drop here is saved in this browser on this computer and overrides that preview for the matching plant.
+        This page now previews shared, project, and remote images when they exist. Save in this browser for quick personal testing, or sign in and switch to Shared Library mode to publish a plant photo for everyone.
       </p>
     </section>
 
@@ -35,8 +35,48 @@
         </div>
       </div>
 
+      <div class="library-admin-card">
+        <div class="library-admin-card-header">
+          <div>
+            <p class="eyebrow">Shared Admin</p>
+            <h3>Supabase image uploads</h3>
+            <p class="summary-copy">Sign in here to upload a plant image for everyone. Keep using browser mode if you only want a personal override on this computer.</p>
+          </div>
+          <div class="library-admin-meta">
+            <span id="sharedImageConfigStatus" class="image-source-chip is-empty">Supabase not configured</span>
+            <span id="sharedImageAuthStatus" class="image-source-chip is-empty">Signed out</span>
+          </div>
+        </div>
+
+        <div class="library-admin-grid">
+          <form id="sharedImageAuthForm" class="library-auth-form" autocomplete="on">
+            <label class="library-field">
+              <span>Email</span>
+              <input id="sharedImageEmail" class="search-input" type="email" autocomplete="email" placeholder="admin@example.com">
+            </label>
+            <label class="library-field">
+              <span>Password</span>
+              <input id="sharedImagePassword" class="search-input" type="password" autocomplete="current-password" placeholder="Password">
+            </label>
+            <div class="library-auth-actions">
+              <button id="sharedImageSignIn" class="secondary-button compact-button" type="submit">Sign In</button>
+              <button id="sharedImageSignOut" class="secondary-button compact-button ghost-button" type="button" disabled>Sign Out</button>
+            </div>
+          </form>
+
+          <div class="library-mode-panel">
+            <p class="eyebrow">Save Target</p>
+            <div class="library-mode-toggle" role="group" aria-label="Image save target">
+              <button id="imageSaveModeBrowser" class="mode-toggle-button is-active" type="button">This Browser Only</button>
+              <button id="imageSaveModeShared" class="mode-toggle-button" type="button">Shared Library</button>
+            </div>
+            <p id="imageSaveModeHint" class="summary-copy">Choose This Browser Only for personal testing, or Shared Library after signing in so the image appears for everyone.</p>
+          </div>
+        </div>
+      </div>
+
       <div class="library-note-card">
-        <p>Each card shows the best wired image it already knows about when available: a saved browser override, a project image, or a wired remote image. Click a card, then paste, use the new <code>Paste</code> button, drag a photo onto it, or use <code>Choose File</code> to replace it in this browser. <code>Delete Current Image</code> clears the preview into a paste-ready slot, and <code>Restore Wired Image</code> brings back the original project or remote preview when available. If your search shows only one plant, paste goes to that plant automatically. For permanent project photos, place files in <code>images/plants/</code> using names like <code>blueberry.jpg</code> or <code>vaccinium-corymbosum.jpg</code>.</p>
+        <p>Each card now shows the best image source it already knows about when available: a saved browser override, a shared admin image, a project image, or a wired remote image. Click a card, then paste, use the <code>Paste</code> button, drag a photo onto it, or use <code>Choose File</code>. <code>Delete Current Image</code> clears the preview into a paste-ready slot, and <code>Restore Wired Image</code> brings back the shared, project, or remote preview when available. If your search shows only one plant, paste goes to that plant automatically. For permanent project photos, place files in <code>images/plants/</code> using names like <code>blueberry.jpg</code> or <code>vaccinium-corymbosum.jpg</code>.</p>
       </div>
 
       <div class="image-library-toolbar">
@@ -47,7 +87,9 @@
     </section>
   </main>
 
-<script src="./app.js?v=20260418-21"></script>
-  <script src="./image-library.js?v=20260419-7"></script>
+  <script src="./supabase-config.js"></script>
+  <script src="./shared-image-service.js"></script>
+  <script src="./app.js?v=20260419-25"></script>
+  <script src="./image-library.js?v=20260419-8"></script>
 </body>
 </html>
