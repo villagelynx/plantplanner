@@ -572,7 +572,7 @@ async function saveSharedImageValue(plantName, value) {
     const imageFile = await createFileFromImageSource(plantName, value);
     return saveSharedImageFromFile(plantName, imageFile);
   } catch (error) {
-    setStatus(`Shared upload needs a real image file or data image for ${plantName}. ${getErrorMessage(error)}`);
+    setStatus(`Shared upload needs real image bytes for ${plantName}. If you copied from a webpage or Windows file list, use Choose File instead. ${getErrorMessage(error)}`);
     return false;
   }
 }
@@ -1064,6 +1064,14 @@ async function createFileFromImageSource(plantName, value) {
     throw new Error("Clipboard did not include a usable image source.");
   }
 
+  if (/^data:image\//i.test(imageSource)) {
+    return createFileFromDataUrl(plantName, imageSource);
+  }
+
+  if (/^(blob:|file:)/i.test(imageSource)) {
+    throw new Error("This pasted image came through as a browser or local-file reference. Use Choose File for shared uploads.");
+  }
+
   const response = await fetch(imageSource);
   if (!response.ok) {
     throw new Error(`The image source returned ${response.status}.`);
@@ -1077,6 +1085,27 @@ async function createFileFromImageSource(plantName, value) {
   const extension = getImageExtension(blob.type, imageSource);
   return new File([blob], `${slugifyPlantName(plantName)}.${extension}`, {
     type: blob.type || `image/${extension}`
+  });
+}
+
+function createFileFromDataUrl(plantName, dataUrl) {
+  const match = String(dataUrl || "").match(/^data:(image\/[^;]+);base64,(.+)$/i);
+  if (!match) {
+    throw new Error("The pasted image data URL could not be parsed.");
+  }
+
+  const contentType = match[1];
+  const base64 = match[2];
+  const extension = getImageExtension(contentType, "");
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return new File([bytes], `${slugifyPlantName(plantName)}.${extension}`, {
+    type: contentType
   });
 }
 
