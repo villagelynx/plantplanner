@@ -868,7 +868,7 @@ h1 {
 
 .results-toolbar {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: flex-end;
   gap: 14px;
   margin-top: 12px;
@@ -902,6 +902,31 @@ h1 {
   color: var(--green-dark);
   font-weight: 800;
   white-space: nowrap;
+}
+
+.results-meta .results-count-pill {
+  align-self: flex-end;
+}
+
+.results-count-database {
+  background: rgba(255,255,255,0.95);
+  color: var(--muted);
+  border-color: rgba(23, 49, 38, 0.1);
+  font-weight: 700;
+}
+
+.results-toolbar-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(229, 242, 228, 0.95);
+  border: 1px solid rgba(43, 122, 75, 0.14);
+  color: var(--green-dark);
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .results-utility-link {
@@ -2353,6 +2378,10 @@ select {
     gap: 8px;
   }
 
+  .results-meta .results-count-pill {
+    align-self: flex-start;
+  }
+
   .results-toolbar {
     margin-top: 10px;
     flex-direction: column;
@@ -2360,6 +2389,10 @@ select {
   }
 
   .results-letter-field {
+    width: 100%;
+  }
+
+  .results-toolbar-pill {
     width: 100%;
   }
 

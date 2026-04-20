@@ -2,6 +2,7 @@ const filterGrid = document.getElementById("filterGrid");
 const resultsList = document.getElementById("resultsList");
 const resultsCount = document.getElementById("resultsCount");
 const databaseCount = document.getElementById("databaseCount");
+const resultsToolbarNotice = document.getElementById("resultsToolbarNotice");
 const plantLetterSelect = document.getElementById("plantLetterSelect");
 const resetButton = document.getElementById("resetButton");
 const zipCodeInput = document.getElementById("zipCodeInput");
@@ -2060,6 +2061,32 @@ function getResultsCountText(visibleCount, fullCount, selectedLetter, showDefaul
   return `${visibleCount} results`;
 }
 
+function getResultsToolbarNoticeText(visibleCount, selectedLetter, activeFilterCount, showDefaultResults) {
+  if (showDefaultResults) {
+    return "Showing featured plants with images first";
+  }
+
+  if (selectedLetter !== LETTER_FILTER_DEFAULT && activeFilterCount === 0) {
+    return `Showing plants starting with ${selectedLetter}`;
+  }
+
+  if (selectedLetter !== LETTER_FILTER_DEFAULT) {
+    return `Showing ${visibleCount} ${selectedLetter} plants matching your filters`;
+  }
+
+  return "";
+}
+
+function setResultsToolbarNotice(message) {
+  if (!resultsToolbarNotice) {
+    return;
+  }
+
+  const nextMessage = String(message || "").trim();
+  resultsToolbarNotice.textContent = nextMessage;
+  resultsToolbarNotice.hidden = !nextMessage;
+}
+
 function initializeBrowseSearchForms() {
   document.querySelectorAll("form[data-browse-search-form]").forEach((form) => {
     if (form.dataset.searchReady === "true") {
@@ -2123,6 +2150,7 @@ function renderResults() {
 
   databaseCount.textContent = `Loading ${PLANTS.length} plants...`;
   resultsCount.textContent = "Loading matches...";
+  setResultsToolbarNotice("");
 
   try {
     const activeFilters = FILTERS.filter((filter) => state[filter.key] && state[filter.key] !== "Any");
@@ -2152,6 +2180,14 @@ function renderResults() {
       selectedLetter,
       showDefaultResults
     );
+    setResultsToolbarNotice(
+      getResultsToolbarNoticeText(
+        visibleRanked.length,
+        selectedLetter,
+        activeFilters.length,
+        showDefaultResults
+      )
+    );
 
     if (visibleRanked.length === 0) {
       resultsList.innerHTML = `
@@ -2165,29 +2201,16 @@ function renderResults() {
     }
 
     const grouped = groupByCategory(visibleRanked);
-    const defaultResultsNotice = showDefaultResults
-      ? `
-        <article class="empty-state home-results-notice">
-          Showing ${visibleRanked.length} featured plants with images first for faster loading. Add filters to narrow the list, or use <a href="./master-list.html">Plant Master Database</a> for the full catalog.
-        </article>
-      `
-      : selectedLetter !== LETTER_FILTER_DEFAULT && activeFilters.length === 0
-        ? `
-          <article class="empty-state home-results-notice">
-            Showing ${visibleRanked.length} plants starting with <strong>${selectedLetter}</strong>. Choose another letter or add filters to narrow the list.
-          </article>
-        `
-      : "";
     const shouldRenderFlatResults = resultsList.classList.contains("home-results-list");
 
     if (shouldRenderFlatResults) {
-      resultsList.innerHTML = defaultResultsNotice + visibleRanked
+      resultsList.innerHTML = visibleRanked
         .map(({ plant, score, matchedTags }) => renderPlantCardSafely(plant, score, matchedTags, !showDefaultResults, true))
         .join("");
       return;
     }
 
-    resultsList.innerHTML = defaultResultsNotice + Object.entries(grouped)
+    resultsList.innerHTML = Object.entries(grouped)
       .map(([category, items]) => `
         <section class="section-group">
           <article class="section-heading-card">
@@ -2202,6 +2225,7 @@ function renderResults() {
     console.error("renderResults failed", error);
     databaseCount.textContent = `${PLANTS.length} plants in database`;
     resultsCount.textContent = "Results unavailable";
+    setResultsToolbarNotice("");
     resultsList.innerHTML = `
       <article class="empty-state">
         The homepage results could not be rendered right now.<br>
