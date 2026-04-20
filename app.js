@@ -2869,7 +2869,6 @@ function renderPlantCard(plant, score, matchedTags, hasActiveFilters) {
         </p>
         ${matchReasonMarkup}
         <div class="tag-grid">
-          ${renderResultTag("Suggested Nursery Cost", plant.nurseryCost)}
           ${renderResultTag("Sunlight", plant.sunlight)}
           ${renderResultTag("Water", plant.water)}
           ${colorTag}

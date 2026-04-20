@@ -37,6 +37,7 @@ let allPlantSlots = [];
 let filteredPlantSlots = [];
 let activePasteSlotIndex = -1;
 let imageSaveMode = getStoredSaveMode();
+let lastSharedSavedPlantName = "";
 
 redirectImageLibraryToPreferredOrigin();
 initializeImageLibrary();
@@ -137,7 +138,9 @@ function renderSlotCard(slot, index) {
   const storedImage = getStoredImage(slot.name);
   const previewState = getPreviewState(slot, storedImage, isPreviewCleared(slot.name));
   const actionState = getSlotActionState();
+  const justSavedSharedImage = lastSharedSavedPlantName === slot.name && Boolean(previewState.sharedImage) && !storedImage;
   const selectedClass = activePasteSlotIndex === index ? " is-selected" : "";
+  const successClass = justSavedSharedImage ? " is-shared-success" : "";
   const deleteLabel = previewState.src ? "Delete Current Image" : "No Image to Delete";
   const deleteDisabled = previewState.src ? "" : " disabled";
   const restoreButton = previewState.isCleared && previewState.restoreCandidates.length > 0
@@ -146,9 +149,12 @@ function renderSlotCard(slot, index) {
   const deleteSharedButton = previewState.sharedImage
     ? `<button class="secondary-button compact-button ghost-button" type="button" data-action="delete-shared" data-index="${index}">Delete Shared</button>`
     : "";
+  const successBanner = justSavedSharedImage
+    ? `<div class="image-slot-success-banner">Saved for everyone in Shared Library</div>`
+    : "";
 
   return `
-    <article class="image-slot-card${selectedClass}" id="image-slot-card-${index}" data-index="${index}" tabindex="0">
+    <article class="image-slot-card${selectedClass}${successClass}" id="image-slot-card-${index}" data-index="${index}" tabindex="0">
       <div class="image-slot-header">
         <div>
           <h3>${escapeHtml(slot.name)}</h3>
@@ -156,6 +162,7 @@ function renderSlotCard(slot, index) {
           <p class="image-slot-file">${escapeHtml(slot.category)} | suggested file: ${escapeHtml(slot.fileHint)}</p>
         </div>
       </div>
+      ${successBanner}
       <div class="image-dropzone" id="image-dropzone-${index}" tabindex="0" role="button" aria-label="Photo slot for ${escapeAttribute(slot.name)}">
         ${renderDropzoneContent(slot, index, previewState)}
       </div>
@@ -637,6 +644,7 @@ async function saveSharedImageFromFile(plantName, file) {
     await sharedImageService.uploadSharedPlantImage(plantName, preparedFile);
     clearStoredImage(plantName, true);
     clearPreviewClearedState(plantName);
+    lastSharedSavedPlantName = plantName;
     setStatus(`Saved image for ${plantName} in Shared Library. This photo is now available to everyone.`);
     return true;
   } catch (error) {
@@ -669,6 +677,9 @@ async function deleteSharedImage(plantName) {
 
   try {
     await sharedImageService.deleteSharedPlantImage(plantName);
+    if (lastSharedSavedPlantName === plantName) {
+      lastSharedSavedPlantName = "";
+    }
     setStatus(`Deleted the shared image for ${plantName}.`);
     return true;
   } catch (error) {
