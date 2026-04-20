@@ -63,14 +63,31 @@
   function mapOverrideRow(row) {
     const plantName = row?.plant_name || row?.plantName || "";
     const plantKey = row?.plant_key || row?.plantKey || slugifyPlantName(plantName);
+    const updatedAt = row?.updated_at || row?.updatedAt || "";
+    const basePublicUrl = row?.public_url || row?.publicUrl || "";
     return {
       plantKey,
       plantName,
       storagePath: row?.storage_path || row?.storagePath || "",
-      publicUrl: row?.public_url || row?.publicUrl || "",
-      updatedAt: row?.updated_at || row?.updatedAt || "",
+      publicUrl: appendCacheBuster(basePublicUrl, updatedAt),
+      updatedAt,
       updatedBy: row?.updated_by || row?.updatedBy || ""
     };
+  }
+
+  function appendCacheBuster(url, updatedAt) {
+    const normalizedUrl = String(url || "").trim();
+    if (!normalizedUrl) {
+      return "";
+    }
+
+    const versionValue = String(updatedAt || "").trim();
+    if (!versionValue) {
+      return normalizedUrl;
+    }
+
+    const joiner = normalizedUrl.includes("?") ? "&" : "?";
+    return `${normalizedUrl}${joiner}v=${encodeURIComponent(versionValue)}`;
   }
 
   function setOverrides(rows) {
@@ -324,12 +341,13 @@
     }
 
     const publicUrl = buildPublicUrl(client, storagePath);
+    const updatedAt = new Date().toISOString();
     const row = {
       plant_key: plantKey,
       plant_name: plantName,
       storage_path: storagePath,
       public_url: publicUrl,
-      updated_at: new Date().toISOString(),
+      updated_at: updatedAt,
       updated_by: state.session.user.id
     };
 
