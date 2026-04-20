@@ -1126,11 +1126,29 @@ select {
   background: rgba(229, 242, 228, 0.48);
 }
 
+.plant-image-link {
+  display: block;
+  height: 100%;
+}
+
 .plant-image img {
   display: block;
   width: 100%;
   height: 170px;
   object-fit: cover;
+}
+
+.home-results-list .plant-image-link {
+  cursor: pointer;
+}
+
+.home-results-list .plant-image img {
+  transition: transform 160ms ease;
+}
+
+.home-results-list .plant-image-link:hover img,
+.home-results-list .plant-image-link:focus-visible img {
+  transform: scale(1.02);
 }
 
 .result-content {

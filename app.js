@@ -2123,7 +2123,7 @@ function renderResults() {
 
     if (shouldRenderFlatResults) {
       resultsList.innerHTML = defaultResultsNotice + visibleRanked
-        .map(({ plant, score, matchedTags }) => renderPlantCardSafely(plant, score, matchedTags, !showDefaultResults))
+        .map(({ plant, score, matchedTags }) => renderPlantCardSafely(plant, score, matchedTags, !showDefaultResults, true))
         .join("");
       return;
     }
@@ -2135,7 +2135,7 @@ function renderResults() {
             <h3 class="category-title">${category}</h3>
             <p class="summary-copy">${items.length} matching plants in this category.</p>
           </article>
-          ${items.map(({ plant, score, matchedTags }) => renderPlantCardSafely(plant, score, matchedTags, !showDefaultResults)).join("")}
+          ${items.map(({ plant, score, matchedTags }) => renderPlantCardSafely(plant, score, matchedTags, !showDefaultResults, false)).join("")}
         </section>
       `)
       .join("");
@@ -2843,9 +2843,9 @@ function getLowercasePlantText(value, fallback) {
   return normalizedValue ? normalizedValue.toLowerCase() : "";
 }
 
-function renderPlantCardSafely(plant, score, matchedTags, hasActiveFilters) {
+function renderPlantCardSafely(plant, score, matchedTags, hasActiveFilters, isHomeCard = false) {
   try {
-    return renderPlantCard(plant, score, matchedTags, hasActiveFilters);
+    return renderPlantCard(plant, score, matchedTags, hasActiveFilters, isHomeCard);
   } catch (error) {
     console.error("Plant card render failed", plant?.commonName || "Unknown plant", error);
 
@@ -2885,7 +2885,7 @@ function renderPlantCardSafely(plant, score, matchedTags, hasActiveFilters) {
   }
 }
 
-function renderPlantCard(plant, score, matchedTags, hasActiveFilters) {
+function renderPlantCard(plant, score, matchedTags, hasActiveFilters, isHomeCard = false) {
   const plantGuideUrl = buildPlantGuideUrl(plant);
   const imageState = getPlantImageState(plant);
   const fallbackImage = imageState.fallback;
@@ -2909,10 +2909,7 @@ function renderPlantCard(plant, score, matchedTags, hasActiveFilters) {
         </div>
       `
     : "";
-
-  return `
-    <article class="result-card">
-      <div class="plant-image">
+  const imageMarkup = `
         <img
           src="${initialImageSource}"
           alt="${plant.commonName}"
@@ -2923,6 +2920,19 @@ function renderPlantCard(plant, score, matchedTags, hasActiveFilters) {
           data-image-candidate-index="0"
           onerror="window.GARDENING_HANDLE_PLANT_IMAGE_ERROR && window.GARDENING_HANDLE_PLANT_IMAGE_ERROR(this)"
         >
+      `;
+  const imageContainerMarkup = isHomeCard && plantGuideUrl
+    ? `
+        <a class="plant-image-link" href="${plantGuideUrl}" aria-label="Open details and plant care for ${plant.commonName}">
+          ${imageMarkup}
+        </a>
+      `
+    : imageMarkup;
+
+  return `
+    <article class="result-card">
+      <div class="plant-image">
+        ${imageContainerMarkup}
       </div>
       <div class="result-content">
         <div class="result-top">
