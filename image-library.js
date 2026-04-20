@@ -1,5 +1,6 @@
 const IMAGE_LIBRARY_STORAGE_PREFIX = "gardeningPlannerImage:";
 const IMAGE_LIBRARY_PREVIEW_CLEAR_PREFIX = "gardeningPlannerImagePreviewClear:";
+const IMAGE_LIBRARY_SAVE_MODE_KEY = "gardeningPlannerImageSaveMode";
 const imageLibraryGrid = document.getElementById("imageLibraryGrid");
 const imageLibraryStatus = document.getElementById("imageLibraryStatus");
 const imageLibraryCount = document.getElementById("imageLibraryCount");
@@ -35,7 +36,7 @@ const imageFileMaps = window.GARDENING_IMAGE_FILE_MAPS || {
 let allPlantSlots = [];
 let filteredPlantSlots = [];
 let activePasteSlotIndex = -1;
-let imageSaveMode = "browser";
+let imageSaveMode = getStoredSaveMode();
 
 redirectImageLibraryToPreferredOrigin();
 initializeImageLibrary();
@@ -976,6 +977,21 @@ function getSharedImageUrl(plantName) {
   return sharedImageService.getSharedImageUrl(plantName) || "";
 }
 
+function getStoredSaveMode() {
+  try {
+    return window.localStorage.getItem(IMAGE_LIBRARY_SAVE_MODE_KEY) === "shared" ? "shared" : "browser";
+  } catch {
+    return "browser";
+  }
+}
+
+function storeSaveMode(mode) {
+  try {
+    window.localStorage.setItem(IMAGE_LIBRARY_SAVE_MODE_KEY, mode === "shared" ? "shared" : "browser");
+  } catch {
+  }
+}
+
 function shouldUseSharedSaveMode() {
   return imageSaveMode === "shared";
 }
@@ -1022,6 +1038,7 @@ function setImageSaveMode(mode) {
   const nextMode = mode === "shared" ? "shared" : "browser";
   const didChange = imageSaveMode !== nextMode;
   imageSaveMode = nextMode;
+  storeSaveMode(imageSaveMode);
   syncSaveModeButtons();
 
   if (didChange && imageLibraryGrid) {
@@ -1034,9 +1051,16 @@ function syncSharedAdminControls() {
   const isConfigured = Boolean(sharedImageService?.isConfigured && sharedImageService.isConfigured());
   const currentSession = sharedImageService?.getSession ? sharedImageService.getSession() : null;
   const signedInEmail = currentSession?.user?.email || "";
+  const savedMode = getStoredSaveMode();
 
   if (imageSaveMode === "shared" && !isConfigured) {
     imageSaveMode = "browser";
+    storeSaveMode(imageSaveMode);
+  }
+
+  if (signedInEmail && savedMode !== "browser" && imageSaveMode !== "shared") {
+    setImageSaveMode("shared");
+    return;
   }
 
   if (libraryAdminCard) {
@@ -1080,7 +1104,9 @@ function syncSharedAdminControls() {
     if (!isConfigured) {
       sharedImageConnectionSummary.textContent = "Supabase is not configured on this page yet.";
     } else if (signedInEmail) {
-      sharedImageConnectionSummary.textContent = `Connected to Supabase as ${signedInEmail}. Shared uploads are live.`;
+      sharedImageConnectionSummary.textContent = imageSaveMode === "shared"
+        ? `Connected to Supabase as ${signedInEmail}. Shared uploads are live, and Shared Library is selected.`
+        : `Connected to Supabase as ${signedInEmail}. You are still in This Browser Only mode right now.`;
     } else {
       sharedImageConnectionSummary.textContent = "Supabase is ready, but you are not signed in yet.";
     }
