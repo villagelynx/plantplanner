@@ -6,7 +6,6 @@ const resetButton = document.getElementById("resetButton");
 const zipCodeInput = document.getElementById("zipCodeInput");
 const zoneLookupButton = document.getElementById("zoneLookupButton");
 const zoneLookupResult = document.getElementById("zoneLookupResult");
-const resultsSortSelect = document.getElementById("resultsSort");
 const sliderToggleButton = document.getElementById("sliderToggleButton");
 const sliderPanelContent = document.getElementById("sliderPanelContent");
 const DEFAULT_HOME_RESULTS_LIMIT = 20;
@@ -1877,12 +1876,6 @@ function bootPlantPlanner() {
   initializeBrowseSearchForms();
   bindSharedImageRefresh();
 
-  if (resultsSortSelect) {
-    resultsSortSelect.addEventListener("change", () => {
-      renderResults();
-    });
-  }
-
   if (filterGrid && resultsList && resultsCount && databaseCount && resetButton) {
     renderFilters();
     initializePreferenceSliders();
@@ -1999,19 +1992,13 @@ function renderResults() {
     syncFilterSelectStates();
     syncPreferenceSliders();
     databaseCount.textContent = `${PLANTS.length} plants in database`;
-    if (resultsSortSelect) {
-      resultsSortSelect.disabled = false;
-    }
-
-    const sortMode = resultsSortSelect?.value || "match";
-
     const ranked = PLANTS
       .map((plant) => ({
         plant,
         ...scorePlant(plant)
       }))
       .filter((entry) => entry.score > 0)
-      .sort((leftEntry, rightEntry) => compareRankedPlants(leftEntry, rightEntry, sortMode));
+      .sort(compareRankedPlants);
     const visibleRanked = showDefaultResults
       ? getDefaultHomeResults(ranked)
       : ranked;
@@ -2032,7 +2019,7 @@ function renderResults() {
     const grouped = groupByCategory(visibleRanked);
     const defaultResultsNotice = showDefaultResults
       ? `
-        <article class="empty-state">
+        <article class="empty-state home-results-notice">
           Showing ${visibleRanked.length} featured plants with images first for faster loading. Add filters to narrow the list, or use <a href="./master-list.html">Plant Master Database</a> for the full catalog.
         </article>
       `
@@ -2476,15 +2463,7 @@ function buildMatchedTags(plant, filters) {
   }));
 }
 
-function compareRankedPlants(leftEntry, rightEntry, sortMode) {
-  if (sortMode === "images") {
-    const leftHasRealImage = Number(hasLikelyRealImage(leftEntry.plant));
-    const rightHasRealImage = Number(hasLikelyRealImage(rightEntry.plant));
-    if (leftHasRealImage !== rightHasRealImage) {
-      return rightHasRealImage - leftHasRealImage;
-    }
-  }
-
+function compareRankedPlants(leftEntry, rightEntry) {
   if (leftEntry.score !== rightEntry.score) {
     return rightEntry.score - leftEntry.score;
   }

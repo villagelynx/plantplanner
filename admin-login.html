@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plant Planner Admin Login</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20260418-1">
+  <link rel="stylesheet" href="./styles.css?v=20260419-44">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero standalone-panel admin-login-card">
+      <div class="hero-utility">
+        <div class="utility-links">
+          <a class="hero-link utility-link secondary-hero-link" href="./index.html">Home</a>
+          <a class="hero-link utility-link secondary-hero-link" href="./instructions.html#contact">Contact</a>
+        </div>
+      </div>
+      <p class="eyebrow">Admin Login</p>
+      <h1>Sign in to open the Plant Planner Image Library.</h1>
+      <p class="hero-copy">
+        This login is for Plant Planner admins only. Once you sign in, you will be taken to the shared image library where you can upload or replace plant photos for everyone.
+      </p>
+
+      <div class="library-admin-card">
+        <div class="library-admin-card-header">
+          <div>
+            <p class="eyebrow">Shared Admin</p>
+            <h3>Supabase image access</h3>
+            <p class="summary-copy">Use your Plant Planner admin email and password. Viewers should stay on the public site and will not be able to open the photo library.</p>
+            <p id="adminLoginStatus" class="library-auth-summary">Checking admin access...</p>
+          </div>
+          <div class="library-admin-meta">
+            <span id="adminLoginConfigStatus" class="image-source-chip is-empty">Supabase not configured</span>
+            <span id="adminLoginAuthStatus" class="image-source-chip is-empty">Signed out</span>
+          </div>
+        </div>
+
+        <form id="adminLoginForm" class="library-auth-form" autocomplete="on">
+          <label class="library-field">
+            <span>Email</span>
+            <input id="adminLoginEmail" class="search-input" type="email" autocomplete="email" placeholder="admin@example.com">
+          </label>
+          <label class="library-field">
+            <span>Password</span>
+            <input id="adminLoginPassword" class="search-input" type="password" autocomplete="current-password" placeholder="Password">
+          </label>
+          <div class="library-auth-actions">
+            <button id="adminLoginSubmit" class="secondary-button compact-button" type="submit">Sign In</button>
+            <button id="adminLoginSignOut" class="secondary-button compact-button ghost-button" type="button" disabled>Sign Out</button>
+          </div>
+        </form>
+
+        <p class="admin-login-note">After a successful sign-in, you will be redirected straight to the admin image library.</p>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <div class="site-footer-inner">
+        <p class="site-footer-copy">Plant Planner keeps admin photo tools separate from the public plant browsing experience.</p>
+        <nav class="site-footer-links" aria-label="Footer">
+          <a class="site-footer-link" href="./instructions.html#about">About</a>
+          <a class="site-footer-link" href="./instructions.html#terms">Terms</a>
+          <a class="site-footer-link" href="./instructions.html#privacy">Privacy Policy</a>
+          <a class="site-footer-link" href="./instructions.html#contact">Contact</a>
+        </nav>
+      </div>
+    </footer>
+  </main>
+
+  <script src="./supabase-config.js"></script>
+  <script src="./shared-image-service.js?v=20260419-3"></script>
+  <script src="./admin-login.js"></script>
+</body>
+</html>

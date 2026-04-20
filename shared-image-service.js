@@ -17,6 +17,7 @@
     sdkLoadPromise: null,
     clientLoadPromise: null,
     overridesLoadPromise: null,
+    readyPromise: null,
     lastError: null
   };
 
@@ -427,6 +428,7 @@
     getSharedImageEntry,
     getSharedImageUrl,
     loadSharedImageOverrides,
+    whenReady: () => state.readyPromise || Promise.resolve(null),
     signIn,
     signOut,
     uploadSharedPlantImage,
@@ -434,12 +436,13 @@
   };
 
   if (!isConfigured()) {
+    state.readyPromise = Promise.resolve(null);
     dispatchSharedAuthUpdated({ event: "NOT_CONFIGURED" });
     dispatchSharedImagesUpdated();
     return;
   }
 
-  initializeSession()
+  state.readyPromise = initializeSession()
     .then(() => loadSharedImageOverrides())
     .catch((error) => {
       state.lastError = error;

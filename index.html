@@ -130,6 +130,7 @@
         <a class="hero-link" href="./browse.html?view=all">Browse All Plants</a>
         <a class="hero-link" href="./nurseries.html">Local Nurseries</a>
         <a class="hero-link" href="./instructions.html">How to Use</a>
+        <a class="hero-link" href="./admin-login.html">Admin</a>
         <form class="hero-search hero-search-inline" action="./browse.html" method="get" data-browse-search-form="true">
           <input type="hidden" name="view" value="all">
           <input class="search-input" type="search" name="q" placeholder="Search plants by name">
@@ -153,23 +154,27 @@
             <p class="eyebrow">Top Matches</p>
             <h2 id="resultsTitle">Your Top Plant Matches</h2>
           </div>
-          <div class="results-meta">
-            <p id="databaseCount" class="results-count">0 plants in database</p>
-            <p id="resultsCount" class="results-count">0 matches</p>
-            <label class="results-sort">
-              <span class="results-sort-label">Sort</span>
-              <select id="resultsSort" class="results-sort-select">
-                <option value="match">Best Match</option>
-                <option value="images">Images First</option>
-              </select>
-            </label>
-            <a class="results-utility-link" href="./images.html">Image Library</a>
-          </div>
+        <div class="results-meta">
+          <p id="databaseCount" class="results-count">0 plants in database</p>
+          <p id="resultsCount" class="results-count">0 matches</p>
         </div>
+      </div>
 
         <div class="results-list home-results-list" id="resultsList"></div>
       </section>
     </section>
+
+    <footer class="site-footer">
+      <div class="site-footer-inner">
+        <p class="site-footer-copy">Plant Planner helps gardeners find plants that fit their space, light, and growing conditions.</p>
+        <nav class="site-footer-links" aria-label="Footer">
+          <a class="site-footer-link" href="./instructions.html#about">About</a>
+          <a class="site-footer-link" href="./instructions.html#terms">Terms</a>
+          <a class="site-footer-link" href="./instructions.html#privacy">Privacy Policy</a>
+          <a class="site-footer-link" href="./instructions.html#contact">Contact</a>
+        </nav>
+      </div>
+    </footer>
   </main>
 
   <script src="./supabase-config.js?v=20260419-2"></script>

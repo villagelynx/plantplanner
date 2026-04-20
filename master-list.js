@@ -69,7 +69,7 @@ function getMasterSortValue(plant, key) {
 function renderMasterListRow(plant) {
   const guideUrl = buildMasterGuideUrl(plant);
   const guideCell = guideUrl
-    ? `<a class="guide-button" href="${guideUrl}">Plant Guide</a>`
+    ? `<a class="guide-button" href="${guideUrl}">Details &amp; Plant Care</a>`
     : `<span class="master-muted">No guide yet</span>`;
 
   return `

@@ -17,6 +17,9 @@ const imageSaveModeBrowserButton = document.getElementById("imageSaveModeBrowser
 const imageSaveModeSharedButton = document.getElementById("imageSaveModeShared");
 const imageSaveModeHint = document.getElementById("imageSaveModeHint");
 const libraryAdminCard = document.querySelector(".library-admin-card");
+const imageLibraryGate = document.getElementById("imageLibraryGate");
+const imageLibraryGateStatus = document.getElementById("imageLibraryGateStatus");
+const imageLibraryContent = document.getElementById("imageLibraryContent");
 const DEFAULT_VISIBLE_SLOTS = 50;
 const PREFERRED_IMAGE_LIBRARY_ORIGIN = "https://plantplanner.ca";
 const SHARED_UPLOAD_MAX_DIMENSION = 1800;
@@ -38,9 +41,14 @@ let filteredPlantSlots = [];
 let activePasteSlotIndex = -1;
 let imageSaveMode = getStoredSaveMode();
 let lastSharedSavedPlantName = "";
+let hasCompletedAdminGateCheck = false;
 
 redirectImageLibraryToPreferredOrigin();
-initializeImageLibrary();
+initializeImageLibrary().catch((error) => {
+  const message = `Could not open the admin image library. ${getErrorMessage(error)}`;
+  setGateStatus(message);
+  setStatus(message);
+});
 
 function redirectImageLibraryToPreferredOrigin() {
   if (typeof window === "undefined" || !window.location) {
@@ -61,8 +69,13 @@ function redirectImageLibraryToPreferredOrigin() {
   window.location.replace(targetUrl);
 }
 
-function initializeImageLibrary() {
+async function initializeImageLibrary() {
   if (!imageLibraryGrid || !window.GARDENING_PLANTS) {
+    return;
+  }
+
+  const hasAdminAccess = await ensureAdminAccess();
+  if (!hasAdminAccess) {
     return;
   }
 
@@ -101,6 +114,62 @@ function initializeImageLibrary() {
   document.addEventListener("paste", handleImagePaste);
   window.addEventListener("gardening:shared-images-updated", handleSharedImagesUpdated);
   window.addEventListener("gardening:shared-auth-updated", syncSharedAdminControls);
+
+  setImageLibraryVisibility(true);
+}
+
+async function ensureAdminAccess() {
+  const sharedImageService = getSharedImageService();
+  if (!sharedImageService?.isConfigured || !sharedImageService.isConfigured()) {
+    setGateStatus("Supabase is not configured for the admin image library yet.");
+    return false;
+  }
+
+  setGateStatus("Checking your admin sign-in...");
+
+  try {
+    if (typeof sharedImageService.whenReady === "function") {
+      await sharedImageService.whenReady();
+    }
+  } catch (error) {
+    setGateStatus(`Could not verify admin access. ${getErrorMessage(error)}`);
+    return false;
+  }
+
+  const currentSession = sharedImageService.getSession?.();
+  if (!currentSession?.user?.email) {
+    redirectToAdminLogin("Sign in to open the Plant Planner Image Library.");
+    return false;
+  }
+
+  hasCompletedAdminGateCheck = true;
+  return true;
+}
+
+function setImageLibraryVisibility(isVisible) {
+  if (imageLibraryContent) {
+    imageLibraryContent.hidden = !isVisible;
+  }
+
+  if (imageLibraryGate) {
+    imageLibraryGate.hidden = isVisible;
+  }
+}
+
+function setGateStatus(message) {
+  if (imageLibraryGateStatus) {
+    imageLibraryGateStatus.textContent = message;
+  }
+}
+
+function redirectToAdminLogin(message) {
+  const redirectUrl = new URL("./admin-login.html", window.location.href);
+  redirectUrl.searchParams.set("next", "./images.html");
+  if (message) {
+    redirectUrl.searchParams.set("message", message);
+  }
+
+  window.location.replace(redirectUrl.toString());
 }
 
 function getFilteredSlots(query) {
@@ -634,7 +703,7 @@ async function saveSharedImageFromFile(plantName, file) {
   }
 
   if (!sharedImageService.getSession || !sharedImageService.getSession()?.user) {
-    setStatus("Sign in above before saving to the shared image library.");
+    setStatus("Sign in on the Admin Login page before saving to the shared image library.");
     return false;
   }
 
@@ -671,7 +740,7 @@ async function deleteSharedImage(plantName) {
   }
 
   if (!sharedImageService.getSession || !sharedImageService.getSession()?.user) {
-    setStatus("Sign in above before deleting from the shared image library.");
+    setStatus("Sign in on the Admin Login page before deleting from the shared image library.");
     return false;
   }
 
@@ -1064,6 +1133,11 @@ function syncSharedAdminControls() {
   const signedInEmail = currentSession?.user?.email || "";
   const savedMode = getStoredSaveMode();
 
+  if (hasCompletedAdminGateCheck && isConfigured && !signedInEmail) {
+    redirectToAdminLogin("Sign in to open the Plant Planner Image Library.");
+    return;
+  }
+
   if (imageSaveMode === "shared" && !isConfigured) {
     imageSaveMode = "browser";
     storeSaveMode(imageSaveMode);
@@ -1147,7 +1221,7 @@ function syncSaveModeButtons() {
     }
 
     if (imageSaveMode === "shared" && !signedIn) {
-      imageSaveModeHint.textContent = "Shared Library is selected, but you still need to sign in above before Choose File or drag and drop can save for everyone. Paste stays local-only.";
+      imageSaveModeHint.textContent = "Shared Library is selected, but you still need to sign in on the Admin Login page before Choose File or drag and drop can save for everyone. Paste stays local-only.";
       return;
     }
 
@@ -1197,7 +1271,7 @@ async function handleSharedSignOut() {
   try {
     await sharedImageService.signOut();
     setImageSaveMode("browser");
-    setStatus("Signed out of the shared image library.");
+    redirectToAdminLogin("Signed out of the Plant Planner Image Library.");
   } catch (error) {
     setStatus(`Could not sign out. ${getErrorMessage(error)}`);
   }
