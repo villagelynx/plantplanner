@@ -20,6 +20,12 @@ const DEFAULT_VISIBLE_SLOTS = 50;
 const PREFERRED_IMAGE_LIBRARY_ORIGIN = "https://plantplanner.ca";
 const SHARED_UPLOAD_MAX_DIMENSION = 1800;
 const SHARED_UPLOAD_SOFT_MAX_BYTES = 4.5 * 1024 * 1024;
+const SUPPORTED_SHARED_UPLOAD_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif"
+]);
 const imageFileMaps = window.GARDENING_IMAGE_FILE_MAPS || {
   popularLocal: {},
   mappedLocal: {},
@@ -129,6 +135,7 @@ function renderImageLibrary() {
 function renderSlotCard(slot, index) {
   const storedImage = getStoredImage(slot.name);
   const previewState = getPreviewState(slot, storedImage, isPreviewCleared(slot.name));
+  const actionState = getSlotActionState();
   const selectedClass = activePasteSlotIndex === index ? " is-selected" : "";
   const deleteLabel = previewState.src ? "Delete Current Image" : "No Image to Delete";
   const deleteDisabled = previewState.src ? "" : " disabled";
@@ -153,8 +160,8 @@ function renderSlotCard(slot, index) {
       </div>
       <input class="image-slot-input" id="image-slot-input-${index}" type="file" accept="image/*">
       <div class="image-slot-actions">
-        <button class="secondary-button compact-button" type="button" data-action="choose" data-index="${index}">Choose File</button>
-        <button class="secondary-button compact-button ghost-button" type="button" data-action="paste" data-index="${index}">Paste</button>
+        <button class="secondary-button compact-button" type="button" data-action="choose" data-index="${index}">${escapeHtml(actionState.chooseLabel)}</button>
+        <button class="secondary-button compact-button ghost-button" type="button" data-action="paste" data-index="${index}"${actionState.pasteDisabled ? " disabled" : ""}>${escapeHtml(actionState.pasteLabel)}</button>
         ${restoreButton}
         ${deleteSharedButton}
         <button class="secondary-button compact-button danger-button" type="button" data-action="delete" data-index="${index}"${deleteDisabled}>${deleteLabel}</button>
@@ -173,7 +180,7 @@ function renderDropzoneContent(slot, index, previewState) {
         decoding="async"
         ${previewState.candidates.length > 0 ? `data-image-candidates="${escapeAttribute(serializeImageCandidates(previewState.candidates))}" data-image-candidate-index="0" data-fallback="${escapeAttribute(previewState.fallback)}" onerror="window.GARDENING_HANDLE_PLANT_IMAGE_ERROR && window.GARDENING_HANDLE_PLANT_IMAGE_ERROR(this)"` : ""}
       >`
-    : `<div class="image-slot-placeholder">${previewState.isCleared ? "Preview cleared. Paste or choose a replacement." : "No wired image yet"}</div>`;
+    : `<div class="image-slot-placeholder">${previewState.isCleared ? getClearedPreviewMessage() : "No wired image yet"}</div>`;
 
   return `
     ${previewMarkup}
@@ -187,6 +194,7 @@ function renderDropzoneContent(slot, index, previewState) {
 function getPreviewState(slot, storedImage, isCleared) {
   const sharedImage = getSharedImageUrl(slot.name);
   const wiredCandidates = dedupeValues([sharedImage, ...slot.previewCandidates]);
+  const saveModeHint = getSlotSaveHint(Boolean(wiredCandidates.length));
 
   if (storedImage) {
     return {
@@ -195,7 +203,7 @@ function getPreviewState(slot, storedImage, isCleared) {
       fallback: slot.fallbackImage || "",
       label: "Saved on this computer",
       badgeClass: "is-saved",
-      hint: "Drop, paste, or choose a replacement",
+      hint: saveModeHint,
       isCleared: false,
       restoreCandidates: wiredCandidates,
       sharedImage
@@ -207,11 +215,13 @@ function getPreviewState(slot, storedImage, isCleared) {
       src: "",
       candidates: [],
       fallback: "",
-      label: "Paste-ready slot",
+      label: shouldUseSharedSaveMode() ? "Replacement-ready slot" : "Paste-ready slot",
       badgeClass: "is-empty",
-      hint: wiredCandidates.length > 0
-        ? "Paste or choose a replacement"
-        : "Drop, paste, or choose a new image",
+      hint: shouldUseSharedSaveMode()
+        ? "Choose File or drop a replacement to share it"
+        : (wiredCandidates.length > 0
+          ? "Paste or choose a replacement"
+          : "Drop, paste, or choose a new image"),
       isCleared: true,
       restoreCandidates: wiredCandidates,
       sharedImage
@@ -228,7 +238,7 @@ function getPreviewState(slot, storedImage, isCleared) {
       fallback: slot.fallbackImage || "",
       label: sourceMeta.label,
       badgeClass: sourceMeta.badgeClass,
-      hint: "Drop, paste, or choose a replacement",
+      hint: saveModeHint,
       isCleared: false,
       restoreCandidates: wiredCandidates,
       sharedImage
@@ -241,11 +251,45 @@ function getPreviewState(slot, storedImage, isCleared) {
     fallback: "",
     label: "Drop-in ready",
     badgeClass: "is-empty",
-    hint: "Drop, paste, or double-click",
+    hint: getSlotSaveHint(false),
     isCleared: false,
     restoreCandidates: [],
     sharedImage: ""
   };
+}
+
+function getSlotActionState() {
+  if (shouldUseSharedSaveMode()) {
+    return {
+      chooseLabel: "Choose File to Share",
+      pasteLabel: "Paste (This Computer Only)",
+      pasteDisabled: true
+    };
+  }
+
+  return {
+    chooseLabel: "Choose File",
+    pasteLabel: "Paste",
+    pasteDisabled: false
+  };
+}
+
+function getSlotSaveHint(hasPreview) {
+  if (shouldUseSharedSaveMode()) {
+    return hasPreview
+      ? "Choose File or drop a replacement to share it"
+      : "Choose File or drop an image to share it";
+  }
+
+  return hasPreview
+    ? "Drop, paste, or choose a replacement"
+    : "Drop, paste, or double-click";
+}
+
+function getClearedPreviewMessage() {
+  return shouldUseSharedSaveMode()
+    ? "Preview cleared. Choose or drop a replacement to share it."
+    : "Preview cleared. Paste or choose a replacement.";
 }
 
 function attachSlotEvents(slot, index) {
@@ -268,13 +312,20 @@ function attachSlotEvents(slot, index) {
 
   if (input) {
     input.addEventListener("change", async (event) => {
-      const file = event.currentTarget.files && event.currentTarget.files[0];
+      const target = event.currentTarget;
+      const file = target.files && target.files[0];
       if (!file) {
+        target.value = "";
         return;
       }
-      const didSave = await saveImageFromFile(slot.name, file);
-      if (didSave) {
-        updateSlotPreview(slot, index);
+
+      try {
+        const didSave = await saveImageFromFile(slot.name, file);
+        if (didSave) {
+          updateSlotPreview(slot, index);
+        }
+      } finally {
+        target.value = "";
       }
     });
   }
@@ -467,6 +518,11 @@ async function trySavePastedImage(event, index) {
     return false;
   }
 
+  if (shouldUseSharedSaveMode()) {
+    setStatus(`Paste saves on this computer only right now. Use Choose File or drag and drop to save ${slot.name} in Shared Library.`);
+    return false;
+  }
+
   const clipboardImage = await extractClipboardImage(event);
   if (clipboardImage.file) {
     const didSave = await saveImageFromFile(slot.name, clipboardImage.file);
@@ -479,6 +535,11 @@ async function trySavePastedImage(event, index) {
   }
 
   if (clipboardImage.src) {
+    if (isLocalFileClipboardReference(clipboardImage.src)) {
+      setStatus(`Paste is not available for ${slot.name} from a copied Windows file reference. Use Choose File instead.`);
+      return false;
+    }
+
     const didSave = await saveImageValue(slot.name, clipboardImage.src);
     if (didSave) {
       updateSlotPreview(slot, index);
@@ -493,6 +554,11 @@ async function trySavePastedImage(event, index) {
 }
 
 async function pasteImageFromClipboard(slot, index) {
+  if (shouldUseSharedSaveMode()) {
+    setStatus(`Paste saves on this computer only right now. Use Choose File or drag and drop to save ${slot.name} in Shared Library.`);
+    return false;
+  }
+
   const clipboardImage = await extractClipboardImage();
   if (clipboardImage.file) {
     const didSave = await saveImageFromFile(slot.name, clipboardImage.file);
@@ -505,6 +571,11 @@ async function pasteImageFromClipboard(slot, index) {
   }
 
   if (clipboardImage.src) {
+    if (isLocalFileClipboardReference(clipboardImage.src)) {
+      setStatus(`Paste is not available for ${slot.name} from this clipboard source. Use Choose File instead.`);
+      return false;
+    }
+
     const didSave = await saveImageValue(slot.name, clipboardImage.src);
     if (didSave) {
       updateSlotPreview(slot, index);
@@ -948,8 +1019,14 @@ function handleSharedImagesUpdated() {
 }
 
 function setImageSaveMode(mode) {
-  imageSaveMode = mode === "shared" ? "shared" : "browser";
+  const nextMode = mode === "shared" ? "shared" : "browser";
+  const didChange = imageSaveMode !== nextMode;
+  imageSaveMode = nextMode;
   syncSaveModeButtons();
+
+  if (didChange && imageLibraryGrid) {
+    renderImageLibrary();
+  }
 }
 
 function syncSharedAdminControls() {
@@ -1033,12 +1110,12 @@ function syncSaveModeButtons() {
     }
 
     if (imageSaveMode === "shared" && !signedIn) {
-      imageSaveModeHint.textContent = "Shared Library is selected, but you still need to sign in above before paste, drag, or Choose File can save for everyone.";
+      imageSaveModeHint.textContent = "Shared Library is selected, but you still need to sign in above before Choose File or drag and drop can save for everyone. Paste stays local-only.";
       return;
     }
 
     imageSaveModeHint.textContent = imageSaveMode === "shared"
-      ? "Shared Library mode is active. New uploads are saved for everyone and should show a Shared Library badge."
+      ? "Shared Library mode is active. Use Choose File or drag and drop to save for everyone. Paste is disabled here so it does not quietly stay on this computer only."
       : "This Browser Only mode is active. New uploads are saved on this computer only and are not shared.";
   }
 }
@@ -1159,16 +1236,35 @@ function getImageExtension(contentType, imageSource) {
   return "jpg";
 }
 
+function isLocalFileClipboardReference(value) {
+  const text = String(value || "").trim();
+  return /^(file:\/\/|[a-zA-Z]:\\)/i.test(text);
+}
+
 async function prepareSharedUploadFile(file, plantName) {
   if (!file || !String(file.type || "").startsWith("image/")) {
     throw new Error("Choose an image file before uploading.");
   }
 
-  if (file.size <= SHARED_UPLOAD_SOFT_MAX_BYTES) {
+  const normalizedType = String(file.type || "").toLowerCase();
+  const needsNormalization = !SUPPORTED_SHARED_UPLOAD_TYPES.has(normalizedType);
+  const needsCompression = file.size > SHARED_UPLOAD_SOFT_MAX_BYTES;
+
+  if (!needsNormalization && !needsCompression) {
     return file;
   }
 
-  const compressedFile = await compressImageFile(file, plantName);
+  let compressedFile;
+  try {
+    compressedFile = await compressImageFile(file, plantName);
+  } catch (error) {
+    if (needsNormalization) {
+      throw new Error("That file type could not be prepared for Shared Library. Try JPG, PNG, or WEBP.");
+    }
+
+    throw error;
+  }
+
   if (compressedFile.size <= SHARED_UPLOAD_SOFT_MAX_BYTES) {
     return compressedFile;
   }

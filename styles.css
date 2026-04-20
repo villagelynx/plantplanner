@@ -1781,6 +1781,13 @@ select {
   font-size: 0.84rem;
 }
 
+.image-slot-actions .secondary-button:disabled {
+  opacity: 0.52;
+  cursor: not-allowed;
+  box-shadow: none;
+  filter: saturate(0.78);
+}
+
 .ghost-button {
   background: rgba(229, 242, 228, 0.92);
   color: var(--green-dark);
