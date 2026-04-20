@@ -2,6 +2,7 @@ const filterGrid = document.getElementById("filterGrid");
 const resultsList = document.getElementById("resultsList");
 const resultsCount = document.getElementById("resultsCount");
 const databaseCount = document.getElementById("databaseCount");
+const plantLetterSelect = document.getElementById("plantLetterSelect");
 const resetButton = document.getElementById("resetButton");
 const zipCodeInput = document.getElementById("zipCodeInput");
 const zoneLookupButton = document.getElementById("zoneLookupButton");
@@ -9,6 +10,7 @@ const zoneLookupResult = document.getElementById("zoneLookupResult");
 const sliderToggleButton = document.getElementById("sliderToggleButton");
 const sliderPanelContent = document.getElementById("sliderPanelContent");
 const DEFAULT_HOME_RESULTS_LIMIT = 20;
+const LETTER_FILTER_DEFAULT = "All";
 
 const FILTERS = [
   { key: "category", label: "Category", options: ["Any", "Edible", "Flower", "Fruit", "Grass", "Groundcover", "Herb", "Houseplant", "Shrub", "Succulent", "Tree", "Vegetable", "Vine"] },
@@ -1973,6 +1975,7 @@ function bootPlantPlanner() {
 
   if (filterGrid && resultsList && resultsCount && databaseCount && resetButton) {
     renderFilters();
+    initializePlantLetterBrowse();
     initializePreferenceSliders();
     initializeZoneLookup();
     resetButton.addEventListener("click", resetFilters);
@@ -2006,6 +2009,11 @@ function resetFilters() {
     }
   });
 
+  state.plantLetter = LETTER_FILTER_DEFAULT;
+  if (plantLetterSelect) {
+    plantLetterSelect.value = LETTER_FILTER_DEFAULT;
+  }
+
   if (zipCodeInput) {
     zipCodeInput.value = "";
   }
@@ -2014,6 +2022,42 @@ function resetFilters() {
   }
   syncPreferenceSliders();
   renderResults();
+}
+
+function initializePlantLetterBrowse() {
+  if (!plantLetterSelect || plantLetterSelect.dataset.ready === "true") {
+    return;
+  }
+
+  const allLetters = Array.from({ length: 26 }, (_, index) => String.fromCharCode(65 + index));
+  plantLetterSelect.innerHTML = [
+    `<option value="${LETTER_FILTER_DEFAULT}">All Plants</option>`,
+    ...allLetters.map((letter) => `<option value="${letter}">${letter} Plants</option>`)
+  ].join("");
+  state.plantLetter = state.plantLetter || LETTER_FILTER_DEFAULT;
+  plantLetterSelect.value = state.plantLetter;
+  plantLetterSelect.dataset.ready = "true";
+  plantLetterSelect.addEventListener("change", (event) => {
+    state.plantLetter = event.currentTarget.value || LETTER_FILTER_DEFAULT;
+    renderResults();
+  });
+}
+
+function getPlantBrowseLetter(name) {
+  const firstLetter = String(name || "").trim().charAt(0).toUpperCase();
+  return /^[A-Z]$/.test(firstLetter) ? firstLetter : "#";
+}
+
+function getResultsCountText(visibleCount, fullCount, selectedLetter, showDefaultResults) {
+  if (showDefaultResults) {
+    return `Showing first ${visibleCount} of ${fullCount} plants`;
+  }
+
+  if (selectedLetter !== LETTER_FILTER_DEFAULT) {
+    return `${visibleCount} ${selectedLetter} plants`;
+  }
+
+  return `${visibleCount} results`;
 }
 
 function initializeBrowseSearchForms() {
@@ -2082,7 +2126,7 @@ function renderResults() {
 
   try {
     const activeFilters = FILTERS.filter((filter) => state[filter.key] && state[filter.key] !== "Any");
-    const showDefaultResults = activeFilters.length === 0;
+    const selectedLetter = state.plantLetter || LETTER_FILTER_DEFAULT;
 
     syncFilterSelectStates();
     syncPreferenceSliders();
@@ -2094,18 +2138,27 @@ function renderResults() {
       }))
       .filter((entry) => entry.score > 0)
       .sort(compareRankedPlants);
+    const letterFilteredRanked = selectedLetter === LETTER_FILTER_DEFAULT
+      ? ranked
+      : ranked.filter(({ plant }) => getPlantBrowseLetter(plant.commonName) === selectedLetter);
+    const showDefaultResults = activeFilters.length === 0 && selectedLetter === LETTER_FILTER_DEFAULT;
     const visibleRanked = showDefaultResults
-      ? getDefaultHomeResults(ranked)
-      : ranked;
+      ? getDefaultHomeResults(letterFilteredRanked)
+      : letterFilteredRanked;
 
-    resultsCount.textContent = showDefaultResults
-      ? `Showing first ${visibleRanked.length} of ${ranked.length} plants`
-      : `${ranked.length} results`;
+    resultsCount.textContent = getResultsCountText(
+      visibleRanked.length,
+      letterFilteredRanked.length,
+      selectedLetter,
+      showDefaultResults
+    );
 
     if (visibleRanked.length === 0) {
       resultsList.innerHTML = `
         <article class="empty-state">
-          No plants matched the current criteria. Try loosening one or two filters to see more options.
+          ${selectedLetter !== LETTER_FILTER_DEFAULT
+            ? `No plants starting with ${selectedLetter} matched the current criteria. Try a different letter or loosen one or two filters.`
+            : "No plants matched the current criteria. Try loosening one or two filters to see more options."}
         </article>
       `;
       return;
@@ -2118,6 +2171,12 @@ function renderResults() {
           Showing ${visibleRanked.length} featured plants with images first for faster loading. Add filters to narrow the list, or use <a href="./master-list.html">Plant Master Database</a> for the full catalog.
         </article>
       `
+      : selectedLetter !== LETTER_FILTER_DEFAULT && activeFilters.length === 0
+        ? `
+          <article class="empty-state home-results-notice">
+            Showing ${visibleRanked.length} plants starting with <strong>${selectedLetter}</strong>. Choose another letter or add filters to narrow the list.
+          </article>
+        `
       : "";
     const shouldRenderFlatResults = resultsList.classList.contains("home-results-list");
 

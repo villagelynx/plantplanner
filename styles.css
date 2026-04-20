@@ -866,6 +866,28 @@ h1 {
   gap: 4px;
 }
 
+.results-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 12px;
+}
+
+.results-letter-field {
+  width: min(210px, 100%);
+}
+
+.results-letter-field label {
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.results-letter-field select {
+  min-height: 40px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+}
+
 .results-utility-link {
   display: inline-flex;
   align-items: center;
@@ -2313,6 +2335,14 @@ select {
   .results-meta {
     align-items: start;
     gap: 8px;
+  }
+
+  .results-toolbar {
+    margin-top: 10px;
+  }
+
+  .results-letter-field {
+    width: 100%;
   }
 
   #databaseCount,
