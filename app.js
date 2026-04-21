@@ -138,6 +138,12 @@ const POPULAR_PLANT_IMAGE_FILES = {
   "Rosemary": "popular/rosemary.jpg",
   "Coneflower": "popular/coneflower.jpg",
   "Hosta": "popular/hosta.jpg",
+  "Hosta Halcyon": "popular/hosta.jpg",
+  "Hosta Patriot": "popular/hosta.jpg",
+  "Hosta Sum and Substance": "popular/hosta.jpg",
+  "Hosta Blue Angel": "popular/hosta.jpg",
+  "Hosta June": "popular/hosta.jpg",
+  "Hosta Guacamole": "popular/hosta.jpg",
   "Japanese Maple": "popular/japanese-maple.jpg",
   "Snake Plant": "popular/snake-plant.jpg",
   "Monstera": "popular/monstera.jpg",
@@ -228,6 +234,12 @@ const POPULAR_PLANT_REMOTE_FILES = {
   "Rosemary": buildWikimediaImageUrl("Rosemary (390003562).jpg"),
   "Coneflower": buildWikimediaImageUrl("Pale purple coneflower (54699458585).jpg"),
   "Hosta": buildWikimediaImageUrl("Hosta.jpg"),
+  "Hosta Halcyon": buildWikimediaImageUrl("Hosta.jpg"),
+  "Hosta Patriot": buildWikimediaImageUrl("Hosta.jpg"),
+  "Hosta Sum and Substance": buildWikimediaImageUrl("Hosta.jpg"),
+  "Hosta Blue Angel": buildWikimediaImageUrl("Hosta.jpg"),
+  "Hosta June": buildWikimediaImageUrl("Hosta.jpg"),
+  "Hosta Guacamole": buildWikimediaImageUrl("Hosta.jpg"),
   "Japanese Maple": buildWikimediaImageUrl("Hever Castle Japanese maple.JPG"),
   "Snake Plant": buildWikimediaImageUrl("The snake plant.jpg"),
   "Monstera": buildWikimediaImageUrl("Indoor Monstera deliciosa.jpg"),
@@ -412,9 +424,97 @@ const PLANTS = [
     category: "Groundcover",
     region: "Northwest",
     sunlight: "Shade", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "Green", climate: "Cool",
-    hardiness: "3-7", growthHabit: "Clumping", seasonality: "Summer", pollinator: "Low", toxicity: "Pet Safe",
+    hardiness: "3-7", growthHabit: "Clumping", seasonality: "Summer", pollinator: "Low", toxicity: "Mildly Toxic",
     pestResistance: "Moderate", drainage: "Moist", wind: "Sheltered", container: "Both", care: "Low",
     lifespan: "Perennial", cost: "Moderate", purpose: "Groundcover", nurseryCost: "$12-$22"
+  }),
+  plant("Hosta Halcyon", "Hosta Halcyon", {
+    category: "Groundcover",
+    region: "Northwest",
+    sunlight: "Shade", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "Blue", climate: "Cool",
+    hardiness: "3-7", growthHabit: "Clumping", seasonality: "Summer", pollinator: "Low", toxicity: "Mildly Toxic",
+    pestResistance: "Moderate", drainage: "Moist", wind: "Sheltered", container: "Both", care: "Low",
+    lifespan: "Perennial", cost: "Moderate", purpose: "Groundcover", nurseryCost: "$14-$24"
+  }),
+  plant("Hosta Patriot", "Hosta Patriot", {
+    category: "Groundcover",
+    region: "Northwest",
+    sunlight: "Shade", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "White", climate: "Cool",
+    hardiness: "3-7", growthHabit: "Clumping", seasonality: "Summer", pollinator: "Low", toxicity: "Mildly Toxic",
+    pestResistance: "Moderate", drainage: "Moist", wind: "Sheltered", container: "Both", care: "Low",
+    lifespan: "Perennial", cost: "Moderate", purpose: "Groundcover", nurseryCost: "$14-$24"
+  }),
+  plant("Hosta Sum and Substance", "Hosta Sum and Substance", {
+    category: "Groundcover",
+    region: "Northwest",
+    sunlight: "Part Shade", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "Yellow", climate: "Cool",
+    hardiness: "3-7", growthHabit: "Clumping", seasonality: "Summer", pollinator: "Low", toxicity: "Mildly Toxic",
+    pestResistance: "Moderate", drainage: "Moist", wind: "Sheltered", container: "Ground", care: "Low",
+    lifespan: "Perennial", cost: "Premium", purpose: "Groundcover", nurseryCost: "$18-$32"
+  }),
+  plant("Hosta Blue Angel", "Hosta Blue Angel", {
+    category: "Groundcover",
+    region: "Northwest",
+    sunlight: "Shade", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "Blue", climate: "Cool",
+    hardiness: "3-7", growthHabit: "Clumping", seasonality: "Summer", pollinator: "Low", toxicity: "Mildly Toxic",
+    pestResistance: "Moderate", drainage: "Moist", wind: "Sheltered", container: "Ground", care: "Low",
+    lifespan: "Perennial", cost: "Premium", purpose: "Groundcover", nurseryCost: "$18-$32"
+  }),
+  plant("Hosta June", "Hosta June", {
+    category: "Groundcover",
+    region: "Northwest",
+    sunlight: "Part Shade", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "Yellow", climate: "Cool",
+    hardiness: "3-7", growthHabit: "Clumping", seasonality: "Summer", pollinator: "Low", toxicity: "Mildly Toxic",
+    pestResistance: "Moderate", drainage: "Moist", wind: "Sheltered", container: "Both", care: "Low",
+    lifespan: "Perennial", cost: "Premium", purpose: "Groundcover", nurseryCost: "$16-$28"
+  }),
+  plant("Hosta Guacamole", "Hosta Guacamole", {
+    category: "Groundcover",
+    region: "Northwest",
+    sunlight: "Part Shade", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "Green", climate: "Cool",
+    hardiness: "5-9", growthHabit: "Clumping", seasonality: "Summer", pollinator: "Low", toxicity: "Mildly Toxic",
+    pestResistance: "Moderate", drainage: "Moist", wind: "Sheltered", container: "Both", care: "Low",
+    lifespan: "Perennial", cost: "Premium", purpose: "Groundcover", nurseryCost: "$16-$28"
+  }),
+  plant("Lady Fern", "Athyrium filix-femina", {
+    category: "Groundcover",
+    region: "Northwest",
+    sunlight: "Shade", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "Green", climate: "Cool",
+    hardiness: "3-7", growthHabit: "Clumping", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe",
+    pestResistance: "High", drainage: "Moist", wind: "Sheltered", container: "Both", care: "Low",
+    lifespan: "Perennial", cost: "Moderate", purpose: "Groundcover", nurseryCost: "$12-$20"
+  }),
+  plant("Japanese Painted Fern", "Athyrium niponicum Pictum", {
+    category: "Groundcover",
+    region: "Pacific Coast",
+    sunlight: "Shade", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "Purple", climate: "Cool",
+    hardiness: "5-9", growthHabit: "Clumping", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe",
+    pestResistance: "High", drainage: "Moist", wind: "Sheltered", container: "Both", care: "Low",
+    lifespan: "Perennial", cost: "Premium", purpose: "Groundcover", nurseryCost: "$14-$24"
+  }),
+  plant("Autumn Fern", "Dryopteris erythrosora", {
+    category: "Groundcover",
+    region: "Pacific Coast",
+    sunlight: "Part Shade", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "Green", climate: "Temperate",
+    hardiness: "5-9", growthHabit: "Clumping", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe",
+    pestResistance: "High", drainage: "Moist", wind: "Sheltered", container: "Both", care: "Low",
+    lifespan: "Perennial", cost: "Moderate", purpose: "Groundcover", nurseryCost: "$12-$22"
+  }),
+  plant("Ostrich Fern", "Matteuccia struthiopteris", {
+    category: "Groundcover",
+    region: "Northeast",
+    sunlight: "Shade", soil: "Rich Organic", water: "High", setting: "Outdoor", color: "Green", climate: "Cool",
+    hardiness: "3-7", growthHabit: "Clumping", seasonality: "Year-Round Interest", pollinator: "Low", toxicity: "Pet Safe",
+    pestResistance: "Moderate", drainage: "Moist", wind: "Sheltered", container: "Ground", care: "Moderate",
+    lifespan: "Perennial", cost: "Moderate", purpose: "Groundcover", nurseryCost: "$14-$24"
+  }),
+  plant("Goat's Beard", "Aruncus dioicus", {
+    category: "Flower",
+    region: "Northeast",
+    sunlight: "Part Shade", soil: "Rich Organic", water: "Moderate", setting: "Outdoor", color: "White", climate: "Cool",
+    hardiness: "3-7", growthHabit: "Clumping", seasonality: "Summer", pollinator: "Moderate", toxicity: "Pet Safe",
+    pestResistance: "Moderate", drainage: "Moist", wind: "Sheltered", container: "Ground", care: "Low",
+    lifespan: "Perennial", cost: "Premium", purpose: "Background Planting", nurseryCost: "$18-$30"
   }),
   plant("Zinnia", "Zinnia elegans", {
     category: "Flower",
