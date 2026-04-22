@@ -2445,7 +2445,12 @@ select {
 }
 
 .guide-topic-icon-seeding {
-  padding-right: 10px;
+  padding-right: 16px;
+}
+
+.guide-topic-icon-pruning,
+.guide-topic-icon-winterizing {
+  padding-left: 9px;
 }
 
 .guide-topic-copy h3 {
