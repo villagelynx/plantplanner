@@ -2447,18 +2447,15 @@ select {
 
 @media (max-width: 640px) {
   .guide-topic-row {
-    grid-template-columns: 36px minmax(0, 1fr);
-    gap: 10px;
+    grid-template-columns: 1fr;
+    gap: 0;
   }
 
   .guide-topic-icon {
-    width: 36px;
-    height: 36px;
+    display: none;
   }
 
-  .guide-topic-icon img,
-  .guide-topic-icon svg {
-    width: 36px;
-    height: 36px;
+  .guide-topic-copy h3 {
+    margin-top: 0;
   }
 }

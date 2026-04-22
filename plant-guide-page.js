@@ -1,11 +1,10 @@
-const plantGuideTitle = document.getElementById("plantGuideTitle");
+﻿const plantGuideTitle = document.getElementById("plantGuideTitle");
 const plantGuideLatin = document.getElementById("plantGuideLatin");
 const plantGuideSummary = document.getElementById("plantGuideSummary");
 const plantGuideImage = document.getElementById("plantGuideImage");
 const plantGuideFacts = document.getElementById("plantGuideFacts");
 const plantGuideSections = document.getElementById("plantGuideSections");
 let currentGuidePlant = null;
-
 initializePlantGuidePage();
 bindSharedGuideImageRefresh();
 
@@ -127,7 +126,19 @@ function renderGuideFact(label, value) {
   `;
 }
 
+function shouldShowGuideTopicIcons() {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return true;
+  }
+
+  return !window.matchMedia("(max-width: 640px)").matches;
+}
+
 function getGuideSectionIcon(title) {
+  if (!shouldShowGuideTopicIcons()) {
+    return "";
+  }
+
   const normalizedTitle = String(title || "").toLowerCase();
   let iconName = "seeding";
 
@@ -141,7 +152,7 @@ function getGuideSectionIcon(title) {
     iconName = "planting";
   }
 
-  return `<img class="guide-topic-art" src="./images/guide-topics/${iconName}.png?v=20260421-1" alt="">`;
+  return `<img class="guide-topic-art" src="./images/guide-topics/${iconName}.png?v=20260421-2" alt="">`;
 }
 
 function renderGuideSection(title, items) {
@@ -149,12 +160,19 @@ function renderGuideSection(title, items) {
     return "";
   }
 
+  const iconMarkup = getGuideSectionIcon(title);
+  const iconColumn = iconMarkup
+    ? `
+        <div class="guide-topic-icon" aria-hidden="true">
+          ${iconMarkup}
+        </div>
+      `
+    : "";
+
   return `
     <article class="guide-section-card">
       <div class="guide-topic-row">
-        <div class="guide-topic-icon" aria-hidden="true">
-          ${getGuideSectionIcon(title)}
-        </div>
+        ${iconColumn}
         <div class="plant-copy guide-topic-copy">
           <h3>${title}</h3>
           <ul class="guide-bullet-list">
@@ -184,3 +202,5 @@ function renderGuideNotFound() {
     </article>
   `;
 }
+
+
