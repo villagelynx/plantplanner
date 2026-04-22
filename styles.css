@@ -2446,6 +2446,16 @@ select {
 }
 
 @media (max-width: 640px) {
+  .guide-button,
+  .hero-guide-example {
+    display: none !important;
+  }
+
+  .plant-image-link {
+    pointer-events: none;
+    cursor: default;
+  }
+
   .guide-topic-row {
     grid-template-columns: 1fr;
     gap: 0;
