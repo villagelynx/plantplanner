@@ -2419,30 +2419,37 @@ select {
 /* Plant guide topic icons */
 .guide-topic-row {
   display: grid;
-  grid-template-columns: 80px minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: 108px minmax(0, 1fr);
+  gap: 20px;
   align-items: start;
 }
 
 .guide-topic-icon {
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
+  padding: 5px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: visible;
 }
 
 .guide-topic-icon img,
 .guide-topic-icon svg {
-  width: 80px;
-  height: 80px;
+  width: 100%;
+  height: 100%;
   display: block;
   object-fit: contain;
 }
 
+.guide-topic-icon-seeding {
+  padding-right: 10px;
+}
+
 .guide-topic-copy h3 {
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 @media (max-width: 640px) {
