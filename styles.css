@@ -2227,6 +2227,35 @@ select {
   .hero-search-inline .search-submit-button {
     padding: 7px 11px;
   }
+
+  .filter-grid {
+    gap: 10px;
+  }
+
+  .filter-panel .panel-header h2 {
+    font-size: 1.22rem;
+  }
+
+  .filter-panel .panel-header .secondary-button {
+    padding: 9px 12px;
+    font-size: 0.84rem;
+  }
+
+  .filter-panel .field {
+    gap: 5px;
+  }
+
+  .filter-panel .field label {
+    font-size: 0.76rem;
+    letter-spacing: 0.03em;
+  }
+
+  .filter-panel select {
+    min-height: 40px;
+    padding: 8px 11px;
+    font-size: 0.88rem;
+    border-radius: 13px;
+  }
 }
 
 @media (max-width: 1080px) {
