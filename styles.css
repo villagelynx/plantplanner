@@ -2192,6 +2192,43 @@ select {
   }
 }
 
+@media (max-width: 1280px) {
+  .hero-actions {
+    gap: 8px;
+  }
+
+  .hero-link,
+  .hero-dropdown-button {
+    min-height: 34px;
+    padding: 7px 11px;
+    font-size: 0.86rem;
+  }
+
+  .hero-dropdown-button::after {
+    width: 7px;
+    height: 7px;
+    margin-left: 6px;
+  }
+
+  .hero-search-inline {
+    flex-basis: 236px;
+  }
+
+  .hero-search-inline .search-input,
+  .hero-search-inline .search-submit-button {
+    min-height: 34px;
+    font-size: 0.86rem;
+  }
+
+  .hero-search-inline .search-input {
+    padding: 7px 12px;
+  }
+
+  .hero-search-inline .search-submit-button {
+    padding: 7px 11px;
+  }
+}
+
 @media (max-width: 1080px) {
   .layout-grid {
     grid-template-columns: 1fr;
