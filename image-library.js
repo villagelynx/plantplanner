@@ -5,6 +5,7 @@ const imageLibraryGrid = document.getElementById("imageLibraryGrid");
 const imageLibraryStatus = document.getElementById("imageLibraryStatus");
 const imageLibraryCount = document.getElementById("imageLibraryCount");
 const imageLibrarySearch = document.getElementById("imageLibrarySearch");
+const imageLibraryLoadMore = document.getElementById("imageLibraryLoadMore");
 const sharedImageAuthForm = document.getElementById("sharedImageAuthForm");
 const sharedImageEmail = document.getElementById("sharedImageEmail");
 const sharedImagePassword = document.getElementById("sharedImagePassword");
@@ -37,11 +38,13 @@ const imageFileMaps = window.GARDENING_IMAGE_FILE_MAPS || {
 };
 
 let allPlantSlots = [];
+let matchedPlantSlots = [];
 let filteredPlantSlots = [];
 let activePasteSlotIndex = -1;
 let imageSaveMode = getStoredSaveMode();
 let lastSharedSavedPlantName = "";
 let hasCompletedAdminGateCheck = false;
+let visibleSlotLimit = DEFAULT_VISIBLE_SLOTS;
 
 redirectImageLibraryToPreferredOrigin();
 initializeImageLibrary().catch((error) => {
@@ -100,13 +103,24 @@ async function initializeImageLibrary() {
       };
     });
 
-  filteredPlantSlots = getFilteredSlots("");
+  matchedPlantSlots = getMatchedSlots("");
+  filteredPlantSlots = getVisibleFilteredSlots();
   renderImageLibrary();
 
   if (imageLibrarySearch) {
     imageLibrarySearch.addEventListener("input", () => {
       const query = imageLibrarySearch.value.trim().toLowerCase();
-      filteredPlantSlots = getFilteredSlots(query);
+      visibleSlotLimit = DEFAULT_VISIBLE_SLOTS;
+      matchedPlantSlots = getMatchedSlots(query);
+      filteredPlantSlots = getVisibleFilteredSlots();
+      renderImageLibrary();
+    });
+  }
+
+  if (imageLibraryLoadMore) {
+    imageLibraryLoadMore.addEventListener("click", () => {
+      visibleSlotLimit += DEFAULT_VISIBLE_SLOTS;
+      filteredPlantSlots = getVisibleFilteredSlots();
       renderImageLibrary();
     });
   }
@@ -172,15 +186,19 @@ function redirectToAdminLogin(message) {
   window.location.replace(redirectUrl.toString());
 }
 
-function getFilteredSlots(query) {
+function getMatchedSlots(query) {
   if (!query) {
-    return allPlantSlots.slice(0, DEFAULT_VISIBLE_SLOTS);
+    return [...allPlantSlots];
   }
 
   return allPlantSlots.filter((slot) =>
     slot.name.toLowerCase().includes(query) ||
     slot.latinName.toLowerCase().includes(query)
   );
+}
+
+function getVisibleFilteredSlots() {
+  return matchedPlantSlots.slice(0, visibleSlotLimit);
 }
 
 function renderImageLibrary() {
@@ -199,7 +217,23 @@ function renderImageLibrary() {
   }
 
   if (imageLibraryCount) {
-    imageLibraryCount.textContent = `${filteredPlantSlots.length} plants shown`;
+    const showingCount = filteredPlantSlots.length;
+    const totalMatches = matchedPlantSlots.length;
+    imageLibraryCount.textContent = totalMatches > showingCount
+      ? `${showingCount} of ${totalMatches} plants shown`
+      : `${showingCount} plants shown`;
+  }
+
+  if (imageLibraryLoadMore) {
+    const remainingCount = Math.max(0, matchedPlantSlots.length - filteredPlantSlots.length);
+    if (remainingCount > 0) {
+      const nextBatchCount = Math.min(DEFAULT_VISIBLE_SLOTS, remainingCount);
+      imageLibraryLoadMore.hidden = false;
+      imageLibraryLoadMore.textContent = `See next ${nextBatchCount} image spots`;
+    } else {
+      imageLibraryLoadMore.hidden = true;
+      imageLibraryLoadMore.textContent = `See next ${DEFAULT_VISIBLE_SLOTS} image spots`;
+    }
   }
 }
 

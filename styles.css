@@ -1807,12 +1807,22 @@ select {
 
 .image-library-toolbar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   margin-top: 14px;
 }
 
 .library-search-input {
   width: min(420px, 100%);
+}
+
+.library-load-more-button[hidden] {
+  display: none;
+}
+
+.library-load-more-button {
+  flex-shrink: 0;
 }
 
 .image-library-grid {
@@ -2535,5 +2545,15 @@ select {
 
   .guide-topic-copy h3 {
     margin-top: 0;
+  }
+
+  .image-library-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .library-search-input,
+  .library-load-more-button {
+    width: 100%;
   }
 }
